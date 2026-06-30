@@ -1,0 +1,12 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install && npx prisma generate && npm run build"
+  },
+  "deploy": {
+    "startCommand": "npm run start:prod",
+    "healthcheckPath": "/api",
+    "numReplicas": 1,
+    "sleepApplication": false
+  }
+}
