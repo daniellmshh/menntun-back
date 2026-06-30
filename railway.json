@@ -4,7 +4,7 @@
     "buildCommand": "npm install && npx prisma generate && npm run build"
   },
   "deploy": {
-    "startCommand": "node dist/main",
+    "startCommand": "node dist/src/main.js",
     "healthcheckPath": "/api",
     "numReplicas": 1,
     "sleepApplication": false
