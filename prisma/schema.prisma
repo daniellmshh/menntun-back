@@ -1,0 +1,525 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  SCHOOL_ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+  TUTOR
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  INACTIVE
+  GRADUATED
+  TRANSFERRED
+  SUSPENDED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum TaskStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum EvaluationType {
+  EXAM
+  QUIZ
+  HOMEWORK
+  PROJECT
+  PARTICIPATION
+  OTHER
+}
+
+enum NoticeAudience {
+  ALL
+  PARENTS
+  TEACHERS
+  STUDENTS
+}
+
+enum ScholarshipType {
+  FULL
+  PARTIAL
+  CONDITIONAL
+}
+
+enum PlanningStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum NivelEducativo {
+  PREESCOLAR
+  PRIMARIA
+  SECUNDARIA
+}
+
+enum PlanningModalidad {
+  PROYECTOS
+  ABJ
+  CENTROS_INTERES
+  TALLERES_CRITICOS
+  RINCONES_APRENDIZAJE
+  UNIDADES_DIDACTICAS
+}
+
+enum CampoFormativo {
+  LENGUAJES
+  SABERES_PENSAMIENTO_CIENTIFICO
+  ETICA_NATURALEZA_SOCIEDADES
+  HUMANO_COMUNITARIO
+}
+
+enum EjeArticulador {
+  PENSAMIENTO_CRITICO
+  VIDA_SALUDABLE
+  INCLUSION
+  INTERCULTURALIDAD_CRITICA
+  IGUALDAD_GENERO
+  ARTE_CULTURA
+  APROPIACION_TECNOLOGIA
+}
+
+// ─── SCHOOLS ───────────────────────────
+
+model School {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  address   String?
+  phone     String?
+  email     String?
+  logoUrl   String?  @map("logo_url")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users         User[]
+  schoolModules SchoolModule[]
+  schoolYears   SchoolYear[]
+  grades        Grade[]
+  groups        Group[]
+  subjects      Subject[]
+  notices       Notice[]
+
+  @@map("schools")
+}
+
+model SchoolModule {
+  id        String   @id @default(uuid())
+  schoolId  String   @map("school_id")
+  module    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  school School @relation(fields: [schoolId], references: [id])
+
+  @@unique([schoolId, module])
+  @@map("school_modules")
+}
+
+// ─── SCHOOL YEAR & PERIODS ─────────────
+
+model SchoolYear {
+  id        String   @id @default(uuid())
+  schoolId  String   @map("school_id")
+  name      String
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  school  School   @relation(fields: [schoolId], references: [id])
+  periods Period[]
+  groups  Group[]
+
+  @@map("school_years")
+}
+
+model Period {
+  id           String   @id @default(uuid())
+  schoolYearId String   @map("school_year_id")
+  name         String
+  startDate    DateTime @map("start_date")
+  endDate      DateTime @map("end_date")
+  order        Int
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  schoolYear SchoolYear    @relation(fields: [schoolYearId], references: [id])
+  grades     GradeRecord[]
+
+  @@map("periods")
+}
+
+// ─── USERS & PROFILES ──────────────────
+
+model User {
+  id          String   @id @default(uuid())
+  schoolId    String   @map("school_id")
+  supabaseUid String   @unique @map("supabase_uid")
+  email       String
+  role        UserRole
+  firstName   String   @map("first_name")
+  lastName    String   @map("last_name")
+  phone       String?
+  avatarUrl   String?  @map("avatar_url")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  school         School          @relation(fields: [schoolId], references: [id])
+  teacherProfile TeacherProfile?
+  studentProfile StudentProfile?
+  parentProfile  ParentProfile?
+
+  @@unique([schoolId, email])
+  @@map("users")
+}
+
+model TeacherProfile {
+  id             String    @id @default(uuid())
+  userId         String    @unique @map("user_id")
+  employeeNumber String?   @map("employee_number")
+  specialty      String?
+  hireDate       DateTime? @map("hire_date")
+  allowedModules String[]  @default([]) @map("allowed_modules")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user               User             @relation(fields: [userId], references: [id])
+  groupAssignments   GroupTeacher[]
+  subjectAssignments SubjectTeacher[]
+  attendanceRecords  Attendance[]
+  tasks              Task[]
+  plannings          Planning[]
+
+  @@map("teacher_profiles")
+}
+
+model StudentProfile {
+  id               String    @id @default(uuid())
+  userId           String    @unique @map("user_id")
+  enrollmentNumber String?   @unique @map("enrollment_number")
+  birthDate        DateTime? @map("birth_date")
+  gender           Gender?
+  bloodType        String?   @map("blood_type")
+  address          String?
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user           User            @relation(fields: [userId], references: [id])
+  enrollments    Enrollment[]
+  attendances    Attendance[]
+  gradeRecords   GradeRecord[]
+  taskDeliveries TaskDelivery[]
+  parentLinks    ParentStudent[]
+  scholarships   Scholarship[]
+
+  @@map("student_profiles")
+}
+
+model ParentProfile {
+  id         String   @id @default(uuid())
+  userId     String   @unique @map("user_id")
+  occupation String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user         User            @relation(fields: [userId], references: [id])
+  studentLinks ParentStudent[]
+
+  @@map("parent_profiles")
+}
+
+model ParentStudent {
+  id               String  @id @default(uuid())
+  parentProfileId  String  @map("parent_profile_id")
+  studentProfileId String  @map("student_profile_id")
+  relationship     String
+  isPrimary        Boolean @default(false) @map("is_primary")
+
+  parentProfile  ParentProfile  @relation(fields: [parentProfileId], references: [id])
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id])
+
+  @@unique([parentProfileId, studentProfileId])
+  @@map("parent_students")
+}
+
+// ─── ACADEMIC STRUCTURE ────────────────
+
+model Grade {
+  id        String          @id @default(uuid())
+  schoolId  String          @map("school_id")
+  name      String
+  order     Int
+  level     NivelEducativo?
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  school School  @relation(fields: [schoolId], references: [id])
+  groups Group[]
+
+  @@unique([schoolId, name])
+  @@map("grades")
+}
+
+model Group {
+  id           String   @id @default(uuid())
+  schoolId     String   @map("school_id")
+  gradeId      String   @map("grade_id")
+  schoolYearId String   @map("school_year_id")
+  name         String
+  maxStudents  Int?     @map("max_students")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  school      School         @relation(fields: [schoolId], references: [id])
+  grade       Grade          @relation(fields: [gradeId], references: [id])
+  schoolYear  SchoolYear     @relation(fields: [schoolYearId], references: [id])
+  teachers    GroupTeacher[]
+  enrollments Enrollment[]
+  attendances Attendance[]
+  tasks       Task[]
+  plannings   Planning[]
+
+  @@unique([schoolId, gradeId, schoolYearId, name])
+  @@map("groups")
+}
+
+model GroupTeacher {
+  id               String  @id @default(uuid())
+  groupId          String  @map("group_id")
+  teacherProfileId String  @map("teacher_profile_id")
+  isHomeroom       Boolean @default(false) @map("is_homeroom")
+
+  group          Group          @relation(fields: [groupId], references: [id])
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id])
+
+  @@unique([groupId, teacherProfileId])
+  @@map("group_teachers")
+}
+
+model Subject {
+  id          String   @id @default(uuid())
+  schoolId    String   @map("school_id")
+  name        String
+  code        String?
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  school    School           @relation(fields: [schoolId], references: [id])
+  teachers  SubjectTeacher[]
+  tasks     Task[]
+  grades    GradeRecord[]
+  plannings Planning[]
+
+  @@unique([schoolId, name])
+  @@map("subjects")
+}
+
+model SubjectTeacher {
+  id               String @id @default(uuid())
+  subjectId        String @map("subject_id")
+  teacherProfileId String @map("teacher_profile_id")
+  groupId          String @map("group_id")
+
+  subject        Subject        @relation(fields: [subjectId], references: [id])
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id])
+
+  @@unique([subjectId, teacherProfileId, groupId])
+  @@map("subject_teachers")
+}
+
+// ─── ENROLLMENTS ───────────────────────
+
+model Enrollment {
+  id               String           @id @default(uuid())
+  studentProfileId String           @map("student_profile_id")
+  groupId          String           @map("group_id")
+  status           EnrollmentStatus @default(ACTIVE)
+  enrolledAt       DateTime         @default(now()) @map("enrolled_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id])
+  group          Group          @relation(fields: [groupId], references: [id])
+
+  @@unique([studentProfileId, groupId])
+  @@map("enrollments")
+}
+
+// ─── ATTENDANCE ────────────────────────
+
+model Attendance {
+  id               String           @id @default(uuid())
+  groupId          String           @map("group_id")
+  studentProfileId String           @map("student_profile_id")
+  teacherProfileId String           @map("teacher_profile_id")
+  date             DateTime         @db.Date
+  status           AttendanceStatus
+  notes            String?
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  group          Group          @relation(fields: [groupId], references: [id])
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id])
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id])
+
+  @@unique([groupId, studentProfileId, date])
+  @@map("attendances")
+}
+
+// ─── GRADES & EVALUATIONS ──────────────
+
+model GradeRecord {
+  id               String         @id @default(uuid())
+  studentProfileId String         @map("student_profile_id")
+  subjectId        String         @map("subject_id")
+  periodId         String         @map("period_id")
+  evaluationType   EvaluationType @map("evaluation_type")
+  score            Decimal        @db.Decimal(5, 2)
+  maxScore         Decimal        @default(10) @map("max_score") @db.Decimal(5, 2)
+  notes            String?
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id])
+  subject        Subject        @relation(fields: [subjectId], references: [id])
+  period         Period         @relation(fields: [periodId], references: [id])
+
+  @@map("grade_records")
+}
+
+// ─── TASKS ─────────────────────────────
+
+model Task {
+  id               String     @id @default(uuid())
+  groupId          String     @map("group_id")
+  subjectId        String     @map("subject_id")
+  teacherProfileId String     @map("teacher_profile_id")
+  title            String
+  description      String?
+  dueDate          DateTime?  @map("due_date")
+  maxScore         Decimal?   @map("max_score") @db.Decimal(5, 2)
+  status           TaskStatus @default(DRAFT)
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  group          Group          @relation(fields: [groupId], references: [id])
+  subject        Subject        @relation(fields: [subjectId], references: [id])
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id])
+  deliveries     TaskDelivery[]
+
+  @@map("tasks")
+}
+
+model TaskDelivery {
+  id               String   @id @default(uuid())
+  taskId           String   @map("task_id")
+  studentProfileId String   @map("student_profile_id")
+  fileUrl          String?  @map("file_url")
+  notes            String?
+  score            Decimal? @db.Decimal(5, 2)
+  deliveredAt      DateTime @default(now()) @map("delivered_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  task           Task           @relation(fields: [taskId], references: [id])
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id])
+
+  @@unique([taskId, studentProfileId])
+  @@map("task_deliveries")
+}
+
+// ─── COMMUNICATIONS ────────────────────
+
+model Notice {
+  id        String         @id @default(uuid())
+  schoolId  String         @map("school_id")
+  title     String
+  body      String
+  audience  NoticeAudience @default(ALL)
+  pinned    Boolean        @default(false)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  school School @relation(fields: [schoolId], references: [id])
+
+  @@map("notices")
+}
+
+// ─── PLANNING ──────────────────────────
+
+model Planning {
+  id                   String            @id @default(uuid())
+  teacherProfileId     String            @map("teacher_profile_id")
+  groupId              String?           @map("group_id")
+  subjectId            String?           @map("subject_id")
+  isStandalone         Boolean           @default(false) @map("is_standalone")
+  standaloneLevel      NivelEducativo?   @map("standalone_level")
+  standaloneGradeOrder Int?              @map("standalone_grade_order")
+  modalidad            PlanningModalidad
+  campoFormativo       CampoFormativo
+  ejesArticuladores    EjeArticulador[]
+  contextoInicial      String            @map("contexto_inicial")
+  contenidos           String
+  pda                  String            @map("pda")
+  relevanciaSocial     String            @map("relevancia_social")
+  produccionSugerida   String            @map("produccion_sugerida")
+  fases                Json
+  recursos             Json?
+  title                String
+  content              String
+  weekStart            DateTime          @map("week_start") @db.Date
+  status               PlanningStatus    @default(DRAFT)
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id])
+  group          Group?         @relation(fields: [groupId], references: [id])
+  subject        Subject?       @relation(fields: [subjectId], references: [id])
+
+  @@map("plannings")
+}
+
+// ─── SCHOLARSHIPS ──────────────────────
+
+model Scholarship {
+  id               String          @id @default(uuid())
+  studentProfileId String          @map("student_profile_id")
+  type             ScholarshipType
+  percentage       Decimal         @db.Decimal(5, 2)
+  reason           String?
+  startDate        DateTime        @map("start_date") @db.Date
+  endDate          DateTime?       @map("end_date") @db.Date
+  active           Boolean         @default(true)
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id])
+
+  @@map("scholarships")
+}
+

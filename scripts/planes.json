@@ -1,0 +1,230 @@
+{
+    "base_conocimiento_nem_fase2": {
+        "modalidades_de_trabajo_metodologia": [
+            {
+                "nombre_modalidad": "Proyecto",
+                "definicion": "Esta modalidad de trabajo propicia el desarrollo del plano didáctico para la implementación de procesos formativos desde un enfoque integral, con el fin de dar atención a una necesidad social (problema, aspecto a mejorar, tema de interés, situación cotidiana o acontecimiento) [6].",
+                "proposito": "Desarrollar acciones formativas específicamente intencionadas para que las niñas y los niños se involucren en la toma de decisiones y búsqueda de soluciones para atender un problema, necesidad o situación, con el fin de promover cambios positivos [11].",
+                "estructura_didactica": [
+                    {
+                        "momento": "1. Punto de partida",
+                        "descripcion": "Plantee actividades detonadoras con diversas intenciones: Socializar y recuperar ideas, saberes y experiencias previas de las niñas y los niños. Identificar preguntas o aspectos específicos que guíen la exploración [12]."
+                    },
+                    {
+                        "momento": "2. Planeación",
+                        "descripcion": "Establezcan una relación entre lo que se ha realizado hasta el momento y la finalidad del proyecto. Esto implica construir, junto con las niñas y los niños, un plan de trabajo que incorpore las acciones del proyecto [13]."
+                    },
+                    {
+                        "momento": "3. ¡A trabajar!",
+                        "descripcion": "Promueva que las niñas y los niños lleven a cabo las acciones del proyecto definidas de manera colaborativa y verifique que se abran posibilidades para que interpreten críticamente la realidad [14]."
+                    },
+                    {
+                        "momento": "4. Comunicamos nuestros logros",
+                        "descripcion": "Verifique que las niñas y los niños presenten a la comunidad tanto lo que se ha realizado como la producción final que integra lo vivido [15]."
+                    },
+                    {
+                        "momento": "5. Reflexión sobre el aprendizaje",
+                        "descripcion": "Facilitar la creación de espacios de intercambio y escucha activa entre las niñas y los niños, de modo que se promuevan tanto la reflexión como el análisis, individual y colectivo, sobre lo que han logrado y aprendido [16]."
+                    }
+                ]
+            },
+            {
+                "nombre_modalidad": "Aprendizaje Basado en Juegos (ABJ)",
+                "definicion": "Modalidad de trabajo que rescata las acciones de formación lúdicas como estrategia para el fomento de capacidades relacionadas con aspectos individuales y sociales [5].",
+                "proposito": "Facilitar la participación de las niñas y los niños en la organización, el desempeño y la valoración de actividades lúdicas que les permitan identificar, concientizarse y transformar problemáticas sociales [5].",
+                "estructura_didactica": [
+                    {
+                        "momento": "1. Planteamiento del juego",
+                        "descripcion": "Abordar el aspecto de la realidad de la vida cotidiana sobre el cual versa la experiencia del juego, considerando su tipo, e indagar sobre los conocimientos que tienen las niñas y los niños al respecto [17]."
+                    },
+                    {
+                        "momento": "2. Desarrollo de las actividades",
+                        "descripcion": "Ampliar los saberes con que cuentan sobre el juego que realizarán. Desarrollen las acciones a su alcance para involucrarse en la preparación del juego. Promueva que se lleven a cabo los acuerdos que tomaron y dediquen tiempo a la experiencia lúdica [18, 19]."
+                    },
+                    {
+                        "momento": "3. Compartimos la experiencia",
+                        "descripcion": "Motive a los niños y a las niñas a expresarles a otras personas lo vivido en los juegos: Los juegos realizados y su procedimiento, y lo aprendido durante el juego [20]."
+                    },
+                    {
+                        "momento": "4. Comunidad de juego",
+                        "descripcion": "Promueva una reflexión colectiva en torno al papel que cada uno ha desempeñado en beneficio de otros al jugar y la responsabilidad social hacia los demás en los diferentes momentos del juego [20]."
+                    }
+                ]
+            },
+            {
+                "nombre_modalidad": "Unidad didáctica",
+                "definicion": "Esta forma de trabajo permite organizar los contenidos, y promueve procesos de desarrollo y aprendizaje en función de un aspecto o recorte significativo de la realidad para las niñas y los niños, sobre el que se decide que indaguen [4].",
+                "proposito": "Mediante esta modalidad, las niñas y los niños podrán vivir experiencias pedagógicas en las que interactúen de una manera cercana con la parte o recorte de la realidad que se haya seleccionado, para construir ideas completas [21].",
+                "estructura_didactica": [
+                    {
+                        "momento": "1. Lectura de la realidad",
+                        "descripcion": "Plantee acciones didácticas dialógicas, pertinentes, variadas, creativas, innovadoras, disruptivas y originales, de modo que presente un aspecto o recorte de la realidad que sea significativo para las niñas y los niños [22]."
+                    },
+                    {
+                        "momento": "2. Identificación de la trama y complejidad",
+                        "descripcion": "Una vez realizada la lectura de la realidad, delimite los aspectos sobre los cuales se profundizará. Para ello, trace la red semántica de preguntas a partir de lo que las niñas y los niños planteen [23]."
+                    },
+                    {
+                        "momento": "3. Planificación y organización del trabajo",
+                        "descripcion": "Diseñen un plan de trabajo que incluya el propósito de la unidad didáctica, y las acciones que llevarán a cabo para buscar, registrar y organizar la información [24]."
+                    },
+                    {
+                        "momento": "4. Exploración y descubrimiento",
+                        "descripcion": "Verifique que las niñas y los niños realicen las actividades previstas para poder responder las preguntas planteadas a través de acciones de enseñanza con la finalidad de buscar, registrar y organizar información [25]."
+                    },
+                    {
+                        "momento": "5. Participación activa y horizontal",
+                        "descripcion": "Recomiende regresar al sitio donde detectaron el problema para desarrollar las actividades que consideraron pueden mejorar las condiciones observadas. Promueva la reflexión crítica, y la expresión de ideas [26, 27]."
+                    },
+                    {
+                        "momento": "6. Valoración de la experiencia",
+                        "descripcion": "Aborde en el aula o en la escuela las acciones o actividades realizadas, y los logros alcanzados. La valoración debe centrarse en aquellas acciones que beneficiaron tanto a la colectividad como a las niñas y los niños [28]."
+                    }
+                ]
+            },
+            {
+                "nombre_modalidad": "Centros de interés",
+                "definicion": "Forma de trabajo que posibilita la actividad infantil sobre aquello que les resulte interesante. Los objetos, hechos, seres o sucesos de la realidad se convierten en núcleos que desencadenan acciones [3].",
+                "proposito": "Contribuye a que las niñas y los niños se acerquen de un modo pedagógicamente organizado a los aspectos y elementos que les interesan para observarlos o conocerlos en las prácticas de la vida cotidiana [29].",
+                "estructura_didactica": [
+                    {
+                        "momento": "1. En contacto con la realidad",
+                        "descripcion": "Ponga a las niñas y los niños en contacto con objetos, hechos, seres, elementos o aspectos de la vida cotidiana que sean de su interés y que provoquen su curiosidad, para observar, comparar, jugar y explorar sensorialmente [30]."
+                    },
+                    {
+                        "momento": "2. Identificación e integración",
+                        "descripcion": "Realice acciones de enseñanza que promuevan que las niñas y los niños seleccionen objetos, hechos, seres y elementos o aspectos de la vida cotidiana sobre los que podrán profundizar, planteando preguntas que permitan conocer cómo se relacionan con la vida [31]."
+                    },
+                    {
+                        "momento": "3. Expresión",
+                        "descripcion": "Promueva que las niñas y los niños, en plena libertad creativa, acuerden y lleven a cabo acciones para que, mediante el uso de lenguajes diversos, divulguen lo vivido y lo aprendido [32]."
+                    }
+                ]
+            },
+            {
+                "nombre_modalidad": "Rincones de aprendizaje",
+                "definicion": "Los rincones de aprendizaje son espacios físicos que posibilitan intercambios diversos y flexibles entre las niñas y los niños, mediante experiencias lúdicas, manipulativas, creativas, exploratorias y de indagación [2].",
+                "proposito": "Propician el acceso a ambientes de aprendizaje autónomos. En esta modalidad, se pretende que las niñas y los niños tomen decisiones sobre las actividades a realizar en cada rincón, organicen sus acciones, jueguen e investiguen [33].",
+                "estructura_didactica": [
+                    {
+                        "momento": "1. Saberes previos",
+                        "descripcion": "Vincule la temática de los rincones con una problemática social. Facilite que niñas y niños conozcan los rincones, los materiales, los espacios y las actividades generales que se hayan dispuesto realizar [34]."
+                    },
+                    {
+                        "momento": "2. Asamblea inicial y planeación",
+                        "descripcion": "En comunidad, definan y registren los acuerdos y compromisos que las niñas y los niños hagan junto con la educadora sobre los aspectos que permitan organizar el trabajo por rincones [35]."
+                    },
+                    {
+                        "momento": "3. Exploración de los rincones",
+                        "descripcion": "Presente las pautas para que las niñas y los niños participen, de forma paralela y activa, en la exploración de los diferentes rincones de aprendizaje. Realice intervenciones para resolver dificultades [36, 37]."
+                    },
+                    {
+                        "momento": "4. Compartimos lo aprendido",
+                        "descripcion": "Proponga planteamientos para que recuperen la necesidad o problema que fue el hilo conductor de la experiencia y presenten a otras personas sus producciones o logros [38, 39]."
+                    },
+                    {
+                        "momento": "5. Reflexión sobre el aprendizaje",
+                        "descripcion": "Abrir un espacio para que las niñas y los niños reflexionen sobre la experiencia personal y compartida en los rincones de aprendizaje, la interacción que tuvieron y lo avanzado en los contenidos [39, 40]."
+                    }
+                ]
+            },
+            {
+                "nombre_modalidad": "Taller crítico",
+                "definicion": "Esta modalidad de trabajo pedagógico se basa en el concepto “aprender haciendo”, el cual implica acciones reflexionadas e intencionadas sobre un procedimiento que integre diferentes aspectos de la realidad [1].",
+                "proposito": "Desarrollar un espacio para la vivencia, la reflexión, la creación y la colaboración en los procesos inherentes a la elaboración de producciones, dando un lugar privilegiado a la expresión de la creatividad [41, 42].",
+                "estructura_didactica": [
+                    {
+                        "momento": "1. Situación inicial",
+                        "descripcion": "Se sugiere que plantee acciones didácticas dialógicas para presentar un tema de relevancia (necesidad o problema) y una propuesta de elaboración de una producción, explorando lo que saben y necesitan saber [43, 44]."
+                    },
+                    {
+                        "momento": "2. Organización de las acciones",
+                        "descripcion": "Dialoguen y construyan acuerdos sobre la finalidad didáctica del taller, la búsqueda de información, la familiaridad con el procedimiento, las actividades, los espacios, los materiales y el tiempo [44-46]."
+                    },
+                    {
+                        "momento": "3. Puesta en marcha",
+                        "descripcion": "Inicien la búsqueda y recuperación de información. Lleven a cabo las acciones de aprendizaje para la elaboración de la producción. Intervenga problematizando, apoyando dificultades y promoviendo la evaluación formativa [47-49]."
+                    },
+                    {
+                        "momento": "4. Valoramos lo aprendido",
+                        "descripcion": "Abra el espacio para utilizar, jugar o presentar el producto realizado a sus pares o comunidad. Promueva acciones para evaluar lo aprendido, identificar dificultades y cómo trabajaron durante el desarrollo [50, 51]."
+                    }
+                ]
+            }
+        ],
+        "curriculo_programa_sintetico": [
+            {
+                "campo_formativo": "Lenguajes",
+                "finalidad": "La expresión y la comunicación de sus formas de ser y estar en el mundo para conformar y manifestar su identidad personal y colectiva [52].",
+                "contenidos": [
+                    {
+                        "nombre_contenido": "Comunicación oral de necesidades, emociones, gustos, ideas y saberes, a través de los diversos lenguajes, desde una perspectiva comunitaria [7].",
+                        "pda_grado_1": "Emplea palabras, gestos, señas, imágenes, sonidos o movimientos corporales que aprende en su comunidad, para expresar necesidades, ideas, emociones y gustos que reflejan su forma de interpretar y actuar en el mundo [7].",
+                        "pda_grado_2": "Manifiesta oralmente y de manera clara necesidades, emociones, gustos, preferencias e ideas, que construye en la convivencia diaria, y se da a entender apoyándose de distintos lenguajes [53].",
+                        "pda_grado_3": "De manera oral, expresa ideas completas sobre necesidades, vivencias, emociones, gustos, preferencias y saberes a distintas personas, combinando los lenguajes [53]."
+                    },
+                    {
+                        "nombre_contenido": "Narración de historias mediante diversos lenguajes, en un ambiente donde niñas y niños participen y se apropien de la cultura, a través de diferentes textos [54].",
+                        "pda_grado_1": "Evoca y narra fragmentos de diferentes textos literarios −leyendas, cuentos, fábulas, historias−, y relatos de la comunidad, que escucha en voz de otras personas que las narran o leen [54].",
+                        "pda_grado_2": "Lee con apoyo y narra con una secuencia lógica, diferentes textos literarios como leyendas, cuentos, fábulas, historias, y relatos de la comunidad, en las que aprecia otras formas de vida [55].",
+                        "pda_grado_3": "Narra historias que inventa considerando los momentos de inicio, desarrollo y final, de manera individual o colectiva [55]."
+                    }
+                ]
+            },
+            {
+                "campo_formativo": "Saberes y Pensamiento Científico",
+                "finalidad": "La comprensión para explicar procesos y fenómenos naturales en su relación con lo social, los cuales ocurren en el mundo con base en los saberes y el pensamiento científico [56].",
+                "contenidos": [
+                    {
+                        "nombre_contenido": "Exploración de la diversidad natural que existe en la comunidad y en otros lugares [8].",
+                        "pda_grado_1": "Usa sus sentidos para percibir en su entorno cercano, plantas que le llaman la atención y describe características tales como: olor, color, forma, textura o tamaño, si tienen hojas, flores o frutos [57].",
+                        "pda_grado_2": "Observa y describe en su lengua materna, animales de su entorno: cómo son, cómo crecen, dónde viven, qué comen, los cuidados que necesitan y otros aspectos que le causan curiosidad [57].",
+                        "pda_grado_3": "Explica con sus palabras y en su lengua materna, procesos, fenómenos naturales y experimentos; los representa con recursos gráficos [58]."
+                    },
+                    {
+                        "nombre_contenido": "Saberes familiares y comunitarios que resuelven situaciones y necesidades en el hogar y la comunidad [58].",
+                        "pda_grado_1": "Identifica saberes familiares que son útiles para la vida, sin poner en riesgo su integridad física y la de las otras personas [59].",
+                        "pda_grado_2": "Selecciona saberes familiares y comunitarios útiles, para resolver situaciones diversas, los compara con los de sus pares y cuida su integridad y la de los demás [59].",
+                        "pda_grado_3": "Propone algunos saberes familiares y comunitarios, para resolver necesidades y situaciones en su hogar, escuela y comunidad [60]."
+                    }
+                ]
+            },
+            {
+                "campo_formativo": "Ética, Naturaleza y Sociedades",
+                "finalidad": "Sentido de pertenencia e identidad personal y colectiva, el cual inicia en el contexto familiar con la lengua, las costumbres, las concepciones del mundo y los estilos de vida que se comparten [61].",
+                "contenidos": [
+                    {
+                        "nombre_contenido": "Interacción, cuidado, conservación y regeneración de la naturaleza, que favorece la construcción de una conciencia socioambiental [9].",
+                        "pda_grado_1": "Convive con su entorno natural, con plantas y animales; expresa lo que percibe y disfruta acerca de ellos [62].",
+                        "pda_grado_2": "Se relaciona con la naturaleza y considera la importancia de sus elementos para la vida (aire, sol, agua y suelo) [62].",
+                        "pda_grado_3": "Interactúa con respeto y empatía en la naturaleza, e identifica algunos elementos y cuidados que necesitan los seres vivos [63]."
+                    },
+                    {
+                        "nombre_contenido": "Transformación responsable del entorno al satisfacer necesidades básicas de alimentación, vestido y vivienda [64].",
+                        "pda_grado_1": "Identifica objetos, prendas de vestir o alimentos que provienen de la naturaleza y los usa o consume de manera racional [64].",
+                        "pda_grado_2": "Observa que las personas transforman la naturaleza al interactuar con ella para satisfacer sus necesidades [64].",
+                        "pda_grado_3": "Asocia los recursos naturales de donde provienen algunos alimentos y explica con sus palabras, cómo cambia la naturaleza al obtenerlos y producirlos [65]."
+                    }
+                ]
+            },
+            {
+                "campo_formativo": "De lo Humano y lo Comunitario",
+                "finalidad": "Construyan su identidad personal mediante la exploración de gustos, intereses, necesidades, posibilidades, formas de entender e interactuar en diversos contextos sociales y naturales [66].",
+                "contenidos": [
+                    {
+                        "nombre_contenido": "Construcción de la identidad personal a partir de su pertenencia a un territorio, su origen étnico, cultural y lingüístico, y la interacción con personas cercanas [10].",
+                        "pda_grado_1": "Descubre gustos, preferencias, posibilidades motrices y afectivas, en juegos y actividades que contribuyan al conocimiento de sí, en un ambiente que considere la diversidad [10].",
+                        "pda_grado_2": "Reconoce algunos rasgos de su identidad, dice cómo es físicamente, qué se le facilita, qué se le dificulta, qué le gusta, qué no le gusta, y los expresa en su lengua materna o con otros lenguajes [67].",
+                        "pda_grado_3": "Identifica que la lengua que habla, las costumbres familiares y el lugar donde vive contribuyen a la formación de su identidad y pertenencia a una comunidad en la que participa y colabora [68]."
+                    },
+                    {
+                        "nombre_contenido": "Posibilidades de movimiento en diferentes espacios, para favorecer las habilidades motrices [69].",
+                        "pda_grado_1": "Explora las posibilidades de movimiento de su cuerpo, en juegos y actividades, de acuerdo con las características y condiciones personales [69].",
+                        "pda_grado_2": "Adapta sus movimientos y fortalece su lateralidad al desplazarse en espacios de la escuela, casa y comunidad en distintas direcciones y con velocidades variadas [69].",
+                        "pda_grado_3": "Combina movimientos que implican el control, equilibrio y estabilidad del cuerpo al realizar acciones individuales, en parejas o en colectivo [70]."
+                    }
+                ]
+            }
+        ]
+    }
+}

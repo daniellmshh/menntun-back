@@ -1,0 +1,419 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "descripcion": "Base de conocimiento unificada NEM — Fase 2 (Preescolar). Combina las 6 Modalidades de Trabajo con sus fases y el Programa Sintético Fase 2 con sus Contenidos y PDAs.",
+    "fuentes": [
+      "Modalidades de trabajo para la educación preescolar — SEP 2023",
+      "Programa Sintético Fase 2 — SEP 2022"
+    ]
+  },
+  "modalidades_de_trabajo_metodologia": [
+    {
+      "id": "PROYECTOS",
+      "nombre": "Proyectos",
+      "definicion": "Son modalidades colectivas de trabajo en las que el estudiantado define una situación o problema de interés que quieren explorar, investigar o resolver de forma colaborativa. El proyecto surge del diálogo comunitario, se planea de forma conjunta y se desarrolla en etapas, con un producto final que se comunica a la comunidad escolar.",
+      "proposito": "Desarrollar habilidades de investigación, colaboración, pensamiento crítico y comunicación a partir del interés real y colectivo del grupo, promoviendo el aprendizaje situado en la realidad sociocultural de la comunidad.",
+      "estructura_didactica": [
+        {
+          "nombre": "Punto de partida",
+          "descripcion": "El docente genera un detonador que despierta la curiosidad del grupo (pregunta, imagen, situación, objeto, lectura, visita). A partir de ello, el grupo dialoga y surge la temática o problema que quieren explorar. Se rescatan saberes previos y se establece el propósito colectivo del proyecto."
+        },
+        {
+          "nombre": "Planeación",
+          "descripcion": "El grupo decide, con guía del docente, qué quieren saber, investigar o hacer. Se organizan las tareas, se definen los roles o equipos, los materiales necesarios, los tiempos y las fuentes de información. Se diseña el producto o entregable final del proyecto."
+        },
+        {
+          "nombre": "¡A trabajar!",
+          "descripcion": "El grupo desarrolla las actividades acordadas: investigan, experimentan, crean, construyen, entrevistan, visitan, etc. El docente acompaña, hace preguntas mediadoras, organiza la sistematización de la información y promueve el intercambio entre equipos. Se ajusta la planeación según lo que va surgiendo."
+        },
+        {
+          "nombre": "Comunicamos nuestros logros",
+          "descripcion": "El grupo comparte con otros (la comunidad escolar, familias, otros grupos) los resultados y productos del proyecto mediante una presentación, exposición, obra, publicación, feria u otro formato que elijan. Esta etapa integra habilidades comunicativas y refuerza el sentido social del aprendizaje."
+        },
+        {
+          "nombre": "Reflexión sobre el aprendizaje",
+          "descripcion": "El grupo reflexiona de forma colectiva sobre lo que aprendieron, cómo lo aprendieron, qué dificultades tuvieron y cómo las resolvieron. El docente cierra el ciclo valorando el proceso, no solo el producto. Se identifican aprendizajes personales y colectivos."
+        }
+      ]
+    },
+    {
+      "id": "ABJ",
+      "nombre": "Aprendizaje Basado en Juego (ABJ)",
+      "definicion": "Es una modalidad en la que el juego es el principal medio pedagógico. No se trata de gamificar actividades, sino de reconocer el juego como actividad genuina con alto valor educativo. El juego puede ser libre, dirigido o colaborativo; puede surgir del interés de los niños o ser propuesto por la docente con intención pedagógica.",
+      "proposito": "Reconocer el juego como espacio privilegiado de aprendizaje donde niñas y niños desarrollan habilidades cognitivas, socioemocionales, comunicativas y físicas de manera integrada, respetando su naturaleza lúdica y su autonomía.",
+      "estructura_didactica": [
+        {
+          "nombre": "Planteamiento del juego",
+          "descripcion": "El docente o el grupo propone el juego a desarrollar. Se explican las reglas, el propósito pedagógico y lo que se espera aprender. Se exploran los materiales disponibles y se organizan los equipos o roles si el juego lo requiere. Se recogen los saberes previos y se genera motivación."
+        },
+        {
+          "nombre": "Desarrollo de las actividades",
+          "descripcion": "El grupo lleva a cabo el juego en sus distintas variantes o etapas. El docente observa, acompaña, hace preguntas que expanden la experiencia lúdica y promueve la participación equitativa. Se realizan ajustes al juego o se introducen variantes según las necesidades del grupo."
+        },
+        {
+          "nombre": "Compartimos la experiencia",
+          "descripcion": "El grupo se reúne para narrar y compartir lo que vivió durante el juego: qué les gustó, qué aprendieron, qué fue difícil, qué estrategias usaron. El docente recupera los aprendizajes implícitos en la experiencia lúdica y los hace explícitos para el grupo."
+        },
+        {
+          "nombre": "Comunidad de juego",
+          "descripcion": "El grupo reflexiona sobre cómo el juego fortalece la comunidad: qué valores se practicaron (cooperación, respeto, empatía), cómo se resolvieron conflictos, qué reglas surgieron. Se identifica cómo el juego se relaciona con la vida comunitaria y los contenidos curriculares trabajados."
+        }
+      ]
+    },
+    {
+      "id": "CENTROS_INTERES",
+      "nombre": "Centros de Interés",
+      "definicion": "Son organizaciones del aula alrededor de un tema o problema de interés general que permite integrar los contenidos de diferentes Campos Formativos. El centro de interés parte del principio globalizador: los fenómenos de la realidad se perciben de manera global, no fragmentada.",
+      "proposito": "Partir del interés natural de los estudiantes para integrar saberes de distintos campos formativos alrededor de una idea central, favoreciendo la comprensión holística del mundo y el aprendizaje significativo.",
+      "estructura_didactica": [
+        {
+          "nombre": "En contacto con la realidad",
+          "descripcion": "El docente propone un objeto, fenómeno, animal, planta, situación o lugar del entorno que sirve como centro organizador. El grupo explora el tema con sus sentidos, observa, toca, escucha, pregunta. Se rescatan saberes previos y se despierta la curiosidad. El contacto directo con la realidad es fundamental."
+        },
+        {
+          "nombre": "Identificación e integración",
+          "descripcion": "A partir de la exploración inicial, el grupo identifica las distintas dimensiones del tema: científica, artística, lingüística, matemática, ética, histórica. El docente guía la organización del conocimiento e integra los contenidos de los diferentes Campos Formativos. Se realizan actividades específicas por campo que convergen en una comprensión integrada."
+        },
+        {
+          "nombre": "Expresión",
+          "descripcion": "El grupo expresa y comunica lo aprendido a través de diversos lenguajes: oral, escrito, plástico, corporal, musical, dramático. Esta fase integra los saberes adquiridos y permite al estudiante mostrar su comprensión de manera creativa y personal. El docente valora los distintos lenguajes como formas legítimas de conocimiento."
+        }
+      ]
+    },
+    {
+      "id": "TALLERES_CRITICOS",
+      "nombre": "Talleres con Enfoque Crítico",
+      "definicion": "Son espacios de producción colectiva donde el grupo trabaja con un oficio, una técnica, un arte o una habilidad específica, desde una perspectiva crítica. No se limitan a la reproducción técnica, sino que buscan que el grupo analice, cuestione y transforme las prácticas sociales relacionadas con el oficio o habilidad.",
+      "proposito": "Desarrollar habilidades prácticas y técnicas en un contexto de reflexión crítica sobre su función social, promoviendo la valoración de los oficios, las artes y las tradiciones comunitarias como formas de conocimiento legítimo.",
+      "estructura_didactica": [
+        {
+          "nombre": "Situación inicial",
+          "descripcion": "El docente presenta la situación, el oficio, la técnica o el arte que será el eje del taller. Se explora el contexto histórico y social de la práctica, su importancia en la comunidad y su relación con los contenidos curriculares. Se rescatan los conocimientos y experiencias previas del grupo."
+        },
+        {
+          "nombre": "Organización de las acciones",
+          "descripcion": "El grupo planifica las actividades del taller: qué producirán, cómo lo harán, qué materiales necesitan, qué roles asumirá cada quién. Se organizan los equipos y se establece la secuencia de trabajo. El docente facilita la reflexión sobre el proceso antes de iniciarlo."
+        },
+        {
+          "nombre": "Puesta en marcha",
+          "descripcion": "El grupo desarrolla las actividades del taller: produce, crea, construye, experimenta. El docente acompaña el proceso técnico y promueve la reflexión crítica durante la práctica: qué hacemos, para qué, cómo se relaciona con nuestra comunidad, qué transformamos. Se valora el proceso y no solo el producto."
+        },
+        {
+          "nombre": "Valoramos lo aprendido",
+          "descripcion": "El grupo evalúa el proceso y el producto del taller. Se reflexiona sobre las habilidades desarrolladas, los obstáculos enfrentados, las decisiones tomadas y el sentido social de la práctica. Se identifican conexiones con los contenidos curriculares y con la vida comunitaria."
+        }
+      ]
+    },
+    {
+      "id": "RINCONES_APRENDIZAJE",
+      "nombre": "Rincones de Aprendizaje",
+      "definicion": "Son espacios físicos diferenciados dentro del aula, cada uno con materiales específicos, que los niños y niñas eligen libremente para explorar, jugar y aprender de forma autónoma y colaborativa. El docente diseña los rincones con intención pedagógica y observa el proceso para comprender los intereses y aprendizajes del grupo.",
+      "proposito": "Promover la autonomía, la libre elección y el aprendizaje por exploración, reconociendo que niñas y niños aprenden de maneras diversas y que el ambiente preparado es en sí mismo un maestro.",
+      "estructura_didactica": [
+        {
+          "nombre": "Saberes previos",
+          "descripcion": "El docente introduce el contexto de los rincones: qué materiales hay, qué se puede hacer en cada espacio. Se activan los saberes previos del grupo sobre los temas relacionados con los rincones. Se generan preguntas que guiarán la exploración."
+        },
+        {
+          "nombre": "Asamblea inicial y planeación",
+          "descripcion": "El grupo, en asamblea, dialoga sobre a qué rincón quieren ir, qué quieren explorar o producir, qué acuerdos deben respetar. Se establecen las normas de convivencia para el trabajo en rincones. El docente presenta brevemente las posibilidades de cada espacio."
+        },
+        {
+          "nombre": "Exploración de los rincones",
+          "descripcion": "Niñas y niños trabajan en los rincones elegidos de forma autónoma o en pequeños grupos. El docente observa, registra, hace preguntas mediadoras y acompaña sin dirigir. Puede rotar entre los rincones para facilitar la profundización de las exploraciones."
+        },
+        {
+          "nombre": "Compartimos lo aprendido",
+          "descripcion": "El grupo se reúne de nuevo en asamblea para compartir lo que hicieron, descubrieron o produjeron en los rincones. Se socializa el conocimiento, se muestran los productos, se narran las experiencias. El docente recupera los aprendizajes y los conecta con los contenidos curriculares."
+        },
+        {
+          "nombre": "Reflexión sobre el aprendizaje",
+          "descripcion": "El grupo reflexiona sobre el proceso: qué aprendieron, cómo lo aprendieron, qué fue interesante, qué quisieran seguir explorando. El docente cierra el ciclo y valora tanto el proceso como el producto, reconociendo los diferentes modos de aprender del grupo."
+        }
+      ]
+    },
+    {
+      "id": "UNIDADES_DIDACTICAS",
+      "nombre": "Unidades Didácticas",
+      "definicion": "Son secuencias de aprendizaje estructuradas alrededor de un tema, concepto, habilidad o problema, diseñadas por el docente con una progresión lógica y didáctica. A diferencia de los proyectos, parten de la programación curricular del docente, aunque pueden incorporar los intereses del grupo.",
+      "proposito": "Organizar el aprendizaje de manera sistemática y progresiva alrededor de un contenido curricular específico, garantizando el desarrollo de habilidades y conocimientos con coherencia didáctica.",
+      "estructura_didactica": [
+        {
+          "nombre": "Lectura de la realidad",
+          "descripcion": "El docente abre la unidad conectando el tema con la realidad cercana de niñas y niños. Se explora el contexto donde el contenido tiene sentido: dónde aparece este tema en la vida real, qué saben ya sobre él. Se genera asombro, curiosidad y motivación para aprender."
+        },
+        {
+          "nombre": "Identificación de la trama",
+          "descripcion": "Se identifican los conceptos clave, las relaciones y la estructura del tema central de la unidad. El docente ayuda al grupo a construir un mapa de lo que saben y lo que quieren aprender. Se establecen los aprendizajes esperados de forma clara y significativa."
+        },
+        {
+          "nombre": "Planificación",
+          "descripcion": "El docente y el grupo diseñan juntos la ruta de la unidad: qué actividades harán, en qué orden, qué materiales necesitan, qué producto final tendrán. Se establece el cronograma y los criterios de evaluación. El grupo entiende el para qué de cada actividad."
+        },
+        {
+          "nombre": "Exploración y descubrimiento",
+          "descripcion": "El grupo realiza las actividades centrales de la unidad: investigan, leen, experimentan, crean, resuelven problemas. El docente varía las estrategias para atender diferentes estilos de aprendizaje. Se registra la información y se sistematizan los descubrimientos."
+        },
+        {
+          "nombre": "Participación activa",
+          "descripcion": "El grupo aplica lo aprendido en situaciones nuevas o desafiantes. Se trabaja en equipo para resolver problemas, crear productos o presentar argumentos. El docente promueve la discusión, el debate y la construcción colectiva del conocimiento."
+        },
+        {
+          "nombre": "Valoración",
+          "descripcion": "El grupo evalúa lo aprendido en la unidad: logramos lo que nos propusimos, qué aprendimos de nuevo, qué podríamos mejorar. Se presentan los productos finales. El docente valora el proceso y el aprendizaje de cada estudiante, y cierra la unidad conectándola con lo que viene."
+        }
+      ]
+    }
+  ],
+  "curriculo_programa_sintetico": {
+    "nivel_educativo": "Preescolar",
+    "fase": 2,
+    "campos_formativos": [
+      {
+        "id": "LENGUAJES",
+        "nombre": "Lenguajes",
+        "finalidad": "Busca la expresión y la comunicación de sus formas de ser y estar en el mundo para conformar su identidad personal y colectiva. En preescolar, las niñas y niños recurren a distintos lenguajes (incluidos los artísticos) al convivir e interactuar en juegos y situaciones diversas, combinando elementos al expresarse (oralidad, gestos, arte, etc.) en igualdad de oportunidades.",
+        "contenidos": [
+          {
+            "id": "F2-LENG-001",
+            "contenido": "Comunicación oral de necesidades, emociones, gustos, ideas y saberes, a través de los diversos lenguajes, desde una perspectiva comunitaria.",
+            "pda_grado_1": "Emplea palabras, gestos, señas, imágenes, sonidos o movimientos corporales que aprende en su comunidad, para expresar necesidades, ideas, emociones y gustos. Reconoce que cuando juega y socializa con sus pares, se expresan desde sus posibilidades, vivencias y cultura. Espera su turno al participar en una conversación.",
+            "pda_grado_2": "Manifiesta oralmente y de manera clara necesidades, emociones, gustos, preferencias e ideas. Escucha con atención a sus pares y espera su turno para hablar. Comprende que existen diversas formas de comunicarse.",
+            "pda_grado_3": "De manera oral, expresa ideas completas sobre necesidades, vivencias, emociones, gustos y saberes a distintas personas, combinando los lenguajes. Conversa y opina sobre diferentes temas."
+          },
+          {
+            "id": "F2-LENG-002",
+            "contenido": "Narración de historias mediante diversos lenguajes, en un ambiente donde niñas y niños participen y se apropien de la cultura.",
+            "pda_grado_1": "Evoca y narra fragmentos de textos literarios (leyendas, cuentos, fábulas, historias) que escucha. Describe lugares o personajes de historias y los relaciona con su comunidad.",
+            "pda_grado_2": "Lee con apoyo y narra con secuencia lógica textos literarios. Modifica eventos, lugares o personajes de narraciones combinando lenguajes.",
+            "pda_grado_3": "Narra historias que inventa considerando inicio, desarrollo y final. Describe detalles de personajes y lugares e incorpora elementos culturales propios."
+          },
+          {
+            "id": "F2-LENG-003",
+            "contenido": "Recursos y juegos del lenguaje que fortalecen la diversidad de formas de expresión oral y que rescatan las lenguas de la comunidad.",
+            "pda_grado_1": "Participa en juegos del lenguaje de la tradición oral y los expresa con fluidez. Combina recursos al decir rimas, poemas, canciones y trabalenguas.",
+            "pda_grado_2": "Dice juegos del lenguaje con fluidez, ritmo y claridad. Utiliza distintos recursos de los lenguajes para modificar y crear formas de expresión.",
+            "pda_grado_3": "Propone y organiza juegos del lenguaje para invitar a sus pares. Experimenta con recursos para crear adivinanzas, trabalenguas, canciones y rimas colectivas."
+          },
+          {
+            "id": "F2-LENG-004",
+            "contenido": "Reconocimiento y aprecio de la diversidad lingüística, al identificar las formas en que se comunican las distintas personas de la comunidad.",
+            "pda_grado_1": "Reconoce que hay personas que se comunican en lenguas distintas. Identifica distintos lenguajes que usan las personas a su alrededor.",
+            "pda_grado_2": "Se familiariza con lenguas distintas a la suya e incorpora expresiones de origen indígena o extranjero. Muestra interés por indagar significados de palabras.",
+            "pda_grado_3": "Identifica y utiliza palabras, frases o señas de la diversidad lingüística. Indaga el significado de términos en diferentes contextos o regiones."
+          },
+          {
+            "id": "F2-LENG-005",
+            "contenido": "Representación gráfica de ideas y descubrimientos, al explorar los diversos textos que hay en su comunidad.",
+            "pda_grado_1": "Explora y descubre textos de su hogar y escuela e interpreta qué dicen a partir de imágenes y marcas gráficas. Relaciona el contenido de textos con sus experiencias.",
+            "pda_grado_2": "Interpreta el contenido de textos de su interés. Representa gráficamente ideas y descubrimientos del entorno. Comunica mensajes con distintos propósitos.",
+            "pda_grado_3": "Utiliza distintos textos para representar gráficamente ideas. Expresa preferencias hacia ciertos textos e identifica sus funciones. Interpreta y elabora señalizaciones y letreros."
+          },
+          {
+            "id": "F2-LENG-006",
+            "contenido": "Expresión de emociones y experiencias apoyándose de recursos gráficos personales y de los lenguajes artísticos.",
+            "pda_grado_1": "Representa emociones y experiencias de manera gráfica. Describe en su producción cómo se siente y lo que le sucedió.",
+            "pda_grado_2": "Elige recursos gráficos al representar emociones y experiencias. Explica a otras personas lo que representan sus producciones.",
+            "pda_grado_3": "Combina recursos gráficos y artísticos en la representación de emociones. Argumenta su opinión acerca de las producciones de sus pares."
+          },
+          {
+            "id": "F2-LENG-007",
+            "contenido": "Producciones gráficas dirigidas a diversas personas destinatarias para establecer vínculos sociales y acercarse a la cultura escrita.",
+            "pda_grado_1": "Reconoce que las producciones gráficas son una forma de comunicación. Elabora producciones gráficas con marcas propias o por dictado.",
+            "pda_grado_2": "Produce textos o mensajes con distintos propósitos y destinatarios. Representa su nombre y otras palabras comunes.",
+            "pda_grado_3": "Planifica producciones gráficas (avisos, recados, letreros) de forma individual o en equipos. Usa grafías para representar su nombre y otras palabras."
+          },
+          {
+            "id": "F2-LENG-008",
+            "contenido": "Reconocimiento de ideas o emociones en la interacción con manifestaciones culturales y artísticas y con la naturaleza.",
+            "pda_grado_1": "Describe características de manifestaciones culturales y artísticas. Comenta lo que le gusta y le provocan las manifestaciones artísticas.",
+            "pda_grado_2": "Interpreta manifestaciones artísticas y culturales diversas. Comparte su experiencia estética. Relaciona manifestaciones artísticas con emociones personales.",
+            "pda_grado_3": "Explica lo que le gusta, se imagina y le provocan las manifestaciones culturales y artísticas. Aprecia y opina sobre las creaciones de sus pares."
+          },
+          {
+            "id": "F2-LENG-009",
+            "contenido": "Producción de expresiones creativas con los distintos elementos de los lenguajes artísticos.",
+            "pda_grado_1": "Experimenta con los elementos de los lenguajes artísticos y descubre posibilidades de creación. Muestra sensibilidad hacia las producciones de sus pares.",
+            "pda_grado_2": "Produce expresiones creativas para representar el mundo cercano y experiencias personales.",
+            "pda_grado_3": "Combina elementos artísticos en producciones creativas. Enriquece sus producciones incluyendo elementos de manifestaciones artísticas."
+          }
+        ]
+      },
+      {
+        "id": "SABERES_PENSAMIENTO_CIENTIFICO",
+        "nombre": "Saberes y Pensamiento Científico",
+        "finalidad": "Orientado a la comprensión y explicación de fenómenos naturales en su relación con lo social. En preescolar, niñas y niños exploran el entorno natural con sus sentidos y robustecen sus saberes con habilidades científicas y matemáticas al observar detalles, cuestionar, experimentar, clasificar y resolver problemas cotidianos de manera colaborativa.",
+        "contenidos": [
+          {
+            "id": "F2-SAB-001",
+            "contenido": "Exploración de la diversidad natural que existe en la comunidad y en otros lugares.",
+            "pda_grado_1": "Usa sus sentidos para percibir plantas en su entorno y describe características como olor, color, forma, textura o tamaño. Indaga sobre los cuidados que necesitan plantas y animales. Experimenta con elementos de la naturaleza y comunica sus hallazgos.",
+            "pda_grado_2": "Observa y describe animales de su entorno: cómo son, cómo crecen, dónde viven, qué comen. Amplía su conocimiento sobre plantas y su proceso de crecimiento. Realiza experimentos para poner a prueba sus ideas.",
+            "pda_grado_3": "Distingue características del entorno natural: plantas, animales, cuerpos de agua, clima. Se apoya en recursos impresos y digitales para ampliar su conocimiento. Observa, experimenta y explica procesos y fenómenos naturales."
+          },
+          {
+            "id": "F2-SAB-002",
+            "contenido": "Saberes familiares y comunitarios que resuelven situaciones y necesidades en el hogar y la comunidad.",
+            "pda_grado_1": "Identifica saberes familiares que son útiles para la vida. Comparte saberes familiares con sus pares y descubre similitudes.",
+            "pda_grado_2": "Selecciona saberes familiares y comunitarios para resolver situaciones diversas. Reconoce que los saberes familiares se comparten y enriquecen entre personas.",
+            "pda_grado_3": "Propone saberes familiares y comunitarios para resolver necesidades. Distingue cuándo los saberes comunitarios son útiles y cuándo deben complementarse con otros conocimientos."
+          },
+          {
+            "id": "F2-SAB-003",
+            "contenido": "Los seres vivos: elementos, procesos y fenómenos naturales que ofrecen oportunidades para entender y explicar hechos cotidianos.",
+            "pda_grado_1": "Hace preguntas sobre elementos de la naturaleza que le dan curiosidad. Comparte descubrimientos e ideas sobre los seres vivos.",
+            "pda_grado_2": "Hace preguntas sobre la naturaleza y pone a prueba ideas con sus pares. Expresa ideas sobre por qué se producen fenómenos naturales e indaga en diferentes fuentes.",
+            "pda_grado_3": "Planifica colaborativamente indagaciones sobre la naturaleza. Explica la importancia del aire, el agua, el suelo y el sol para los seres vivos."
+          },
+          {
+            "id": "F2-SAB-004",
+            "contenido": "Los saberes numéricos como herramienta para resolver situaciones del entorno, en diversos contextos socioculturales.",
+            "pda_grado_1": "Reconoce números en su contexto sociocultural e interpreta su significado. Usa números en juegos y situaciones cotidianas.",
+            "pda_grado_2": "Usa números con distintos propósitos. Cuenta objetos y compara colecciones. Resuelve situaciones que implican juntar, agregar, separar o quitar elementos.",
+            "pda_grado_3": "Dice la serie numérica en orden y amplía su rango de conteo. Construye colecciones y las compara mediante distintas estrategias. Resuelve colaborativamente situaciones que involucran agregar, juntar y quitar cantidades."
+          },
+          {
+            "id": "F2-SAB-005",
+            "contenido": "El dominio del espacio y reconocimiento de formas en el entorno desde diversos puntos de observación.",
+            "pda_grado_1": "Usa el espacio al desplazarse y ubica objetos y personas. Visualiza y describe características de forma en objetos cotidianos.",
+            "pda_grado_2": "Ubica personas y objetos con referentes personales. Establece relaciones de orientación al interactuar en su entorno.",
+            "pda_grado_3": "Expresa la posición de objetos y personas con referentes espaciales convencionales. Observa y reconoce atributos geométricos en objetos del entorno. Crea patrones de repetición y crecimiento."
+          },
+          {
+            "id": "F2-SAB-006",
+            "contenido": "Las magnitudes de longitud, peso, capacidad y tiempo en situaciones cotidianas del hogar y del entorno sociocultural.",
+            "pda_grado_1": "Compara la longitud de dos objetos. Distingue objetos pesados y ligeros. Ordena actividades cotidianas para identificar el paso del tiempo.",
+            "pda_grado_2": "Compara la longitud de dos o más objetos de manera directa. Sopesa objetos para comparar su peso. Organiza actividades estableciendo una secuencia en su duración.",
+            "pda_grado_3": "Estima y compara la longitud de objetos con apoyo de un intermediario. Mide objetos con unidades no convencionales. Percibe el paso del tiempo mediante eventos y procesos naturales."
+          },
+          {
+            "id": "F2-SAB-007",
+            "contenido": "Clasificación y experimentación con objetos y elementos del entorno que reflejan la diversidad de la comunidad.",
+            "pda_grado_1": "Identifica de manera intuitiva cómo se organizan los objetos en el hogar y la escuela. Explora características de elementos del entorno y establece semejanzas y diferencias.",
+            "pda_grado_2": "Compara y organiza elementos del entorno de acuerdo con criterios definidos con sus pares. Dialoga con sus pares para definir criterios de clasificación.",
+            "pda_grado_3": "Organiza por sus semejanzas objetos del entorno con un propósito definido. Elabora e interpreta registros para organizar objetos mediante dibujos, tablas o pictogramas."
+          },
+          {
+            "id": "F2-SAB-008",
+            "contenido": "Características de objetos y comportamiento de los materiales del entorno sociocultural.",
+            "pda_grado_1": "Observa y explora los materiales con los que están hechos los objetos. Reconoce características de consistencia, forma, tamaño, color y textura.",
+            "pda_grado_2": "Percibe y describe cómo cambian los objetos y materiales al manipularlos. Explora las características de los materiales al combinarlos.",
+            "pda_grado_3": "Describe las características de los objetos y materiales del entorno. Experimenta con objetos para reconocer sus propiedades. Explica resultados y los contrasta con los hallazgos de sus pares."
+          },
+          {
+            "id": "F2-SAB-009",
+            "contenido": "Objetos y artefactos tecnológicos que mejoran y facilitan la vida familiar y de la comunidad.",
+            "pda_grado_1": "Usa en su vida diaria juguetes y artefactos tecnológicos. Plantea ideas acerca de cómo supone que funcionan.",
+            "pda_grado_2": "Observa y explica cómo entiende que funcionan los artefactos tecnológicos. Reconoce diferentes usos que las personas les dan.",
+            "pda_grado_3": "Indaga acerca del funcionamiento de artefactos tecnológicos. Imagina y propone nuevas formas de usar los artefactos de manera sustentable."
+          }
+        ]
+      },
+      {
+        "id": "ETICA_NATURALEZA_SOCIEDADES",
+        "nombre": "Ética, Naturaleza y Sociedades",
+        "finalidad": "Fomenta el sentido de pertenencia, la identidad y la construcción de una postura ética, responsable y democrática. En preescolar, las niñas y niños expanden su ámbito familiar a la comunidad, aprenden a relacionarse respetando la diversidad y los derechos humanos, y participan de forma vivencial en el cuidado y conservación de la naturaleza.",
+        "contenidos": [
+          {
+            "id": "F2-ETI-001",
+            "contenido": "Interacción, cuidado, conservación y regeneración de la naturaleza, que favorece la construcción de una conciencia socioambiental.",
+            "pda_grado_1": "Convive con su entorno natural, con plantas y animales; expresa lo que percibe y disfruta. Manifiesta actitudes de cuidado y empatía hacia los seres vivos.",
+            "pda_grado_2": "Se relaciona con la naturaleza y considera la importancia de sus elementos para la vida. Aprecia la diversidad de los seres vivos y sugiere formas de cuidarlos.",
+            "pda_grado_3": "Manifiesta interés por cuidar a la naturaleza y encuentra formas creativas de resolver problemas socioambientales. Reconoce condiciones ambientales de su comunidad y hace propuestas para mejorarlas."
+          },
+          {
+            "id": "F2-ETI-002",
+            "contenido": "Transformación responsable del entorno al satisfacer necesidades básicas de alimentación, vestido y vivienda.",
+            "pda_grado_1": "Identifica objetos, prendas o alimentos que provienen de la naturaleza y los usa de manera racional. Asocia los alimentos con los animales o plantas de los que provienen.",
+            "pda_grado_2": "Distingue acciones benéficas para su entorno como sembrar y cuidar plantas. Reconoce que las necesidades básicas se satisfacen con recursos de la naturaleza.",
+            "pda_grado_3": "Propone formas de transformar la naturaleza de manera responsable para satisfacer necesidades sin deteriorarla. Reconoce la importancia de usar los recursos naturales de forma sustentable."
+          },
+          {
+            "id": "F2-ETI-003",
+            "contenido": "La identidad personal y colectiva, en el contexto de la diversidad familiar, lingüística y cultural.",
+            "pda_grado_1": "Reconoce sus características personales y las de las personas de su entorno. Expresa lo que lo hace único y reconoce que todos son diferentes.",
+            "pda_grado_2": "Reconoce su historia personal y familiar y la comparte con sus pares. Comprende que existen diversas formas de ser familia y las respeta.",
+            "pda_grado_3": "Reflexiona sobre sus características, intereses y forma de ver el mundo. Reconoce y valora la diversidad de identidades culturales en su comunidad."
+          },
+          {
+            "id": "F2-ETI-004",
+            "contenido": "Los derechos de las niñas, niños y adolescentes, como parte del ejercicio de una ciudadanía responsable.",
+            "pda_grado_1": "Conoce algunos de sus derechos y reconoce cuándo no se respetan. Identifica que tiene derecho a ser escuchado, a jugar, a aprender y a ser cuidado.",
+            "pda_grado_2": "Reconoce sus derechos y los de sus pares. Rechaza situaciones de injusticia o exclusión en su entorno.",
+            "pda_grado_3": "Argumenta por qué es importante respetar los derechos de todas las personas. Participa en acciones que promueven el respeto a los derechos humanos."
+          },
+          {
+            "id": "F2-ETI-005",
+            "contenido": "La convivencia pacífica y democrática, a partir del reconocimiento y respeto de la diversidad de las personas.",
+            "pda_grado_1": "Convive con sus pares respetando sus diferencias. Identifica situaciones de conflicto y busca ayuda para resolverlas.",
+            "pda_grado_2": "Propone formas de resolver conflictos de manera pacífica. Practica acuerdos y los propone a su grupo para mejorar la convivencia.",
+            "pda_grado_3": "Promueve la convivencia pacífica e identifica acciones que favorecen el buen trato. Participa en la construcción de acuerdos colectivos. Expresa su opinión de manera respetuosa."
+          },
+          {
+            "id": "F2-ETI-006",
+            "contenido": "El territorio, sus características y su historia, como parte de la identidad personal y colectiva.",
+            "pda_grado_1": "Reconoce las características de su entorno cercano: calles, parques, edificios, naturaleza. Expresa lo que le gusta de su comunidad.",
+            "pda_grado_2": "Describe características de su comunidad: costumbres, festividades, lugares y oficios. Expresa su sentido de pertenencia a su comunidad.",
+            "pda_grado_3": "Indaga sobre la historia y las características de su comunidad. Propone formas de cuidar y preservar el patrimonio cultural y natural."
+          },
+          {
+            "id": "F2-ETI-007",
+            "contenido": "Labores y servicios que contribuyen al bien común de las distintas familias y comunidades.",
+            "pda_grado_1": "Observa y conoce las labores y actividades que desarrollan los integrantes de su familia, e identifica que tienen un impacto en la comunidad.",
+            "pda_grado_2": "Se interesa por las labores y servicios que desarrollan las personas de su comunidad y valora su impacto social.",
+            "pda_grado_3": "Comprende y aprecia la importancia de las distintas labores y servicios que existen en su comunidad para el bien común."
+          }
+        ]
+      },
+      {
+        "id": "HUMANO_COMUNITARIO",
+        "nombre": "De lo Humano y lo Comunitario",
+        "finalidad": "Promueve el autoconocimiento, el bienestar personal y colectivo, y la vida en comunidad con sentido de responsabilidad, cuidado mutuo y participación. En preescolar, niñas y niños desarrollan habilidades socioemocionales, cuidan su salud y cuerpo, y construyen relaciones solidarias con su entorno.",
+        "contenidos": [
+          {
+            "id": "F2-HUM-001",
+            "contenido": "El autoconocimiento y la regulación de las emociones para el bienestar personal y colectivo.",
+            "pda_grado_1": "Identifica y nombra sus emociones en situaciones cotidianas. Reconoce qué situaciones le generan diferentes emociones.",
+            "pda_grado_2": "Reconoce sus emociones e identifica qué las provoca. Expresa sus emociones de manera adecuada en distintas situaciones.",
+            "pda_grado_3": "Identifica y expresa sus emociones y las relaciona con sus pensamientos y acciones. Practica estrategias de autorregulación emocional de forma cada vez más autónoma."
+          },
+          {
+            "id": "F2-HUM-002",
+            "contenido": "El cuidado del cuerpo y la salud desde una perspectiva integral y comunitaria.",
+            "pda_grado_1": "Identifica y nombra las partes de su cuerpo y reconoce para qué sirven. Practica hábitos de higiene personal.",
+            "pda_grado_2": "Reconoce la importancia del cuidado del cuerpo para el bienestar personal. Practica hábitos de higiene y alimentación saludable.",
+            "pda_grado_3": "Comprende la relación entre el cuidado del cuerpo, la alimentación y el bienestar. Propone hábitos de vida saludable para sí mismo y su comunidad."
+          },
+          {
+            "id": "F2-HUM-003",
+            "contenido": "El movimiento, la expresión corporal y la actividad física como formas de comunicación, bienestar y disfrute.",
+            "pda_grado_1": "Explora las posibilidades de movimiento de su cuerpo en situaciones de juego. Participa en juegos y actividades físicas colectivas.",
+            "pda_grado_2": "Desarrolla habilidades motrices a través del juego y la actividad física. Expresa emociones e ideas a través del movimiento y la danza.",
+            "pda_grado_3": "Combina habilidades motrices en actividades físicas y artísticas. Crea secuencias de movimiento para expresar emociones, ideas o situaciones."
+          },
+          {
+            "id": "F2-HUM-004",
+            "contenido": "La colaboración y la participación comunitaria como formas de fortalecer el tejido social.",
+            "pda_grado_1": "Participa en actividades colectivas con sus pares y docentes. Reconoce la importancia de ayudarse y colaborar en el grupo.",
+            "pda_grado_2": "Propone y participa en acciones colectivas para el bienestar del grupo y la escuela. Valora la participación de todas las personas en actividades comunitarias.",
+            "pda_grado_3": "Organiza con sus pares acciones colectivas para el bienestar de la escuela y la comunidad. Propone y ejecuta proyectos comunitarios simples con apoyo del docente."
+          },
+          {
+            "id": "F2-HUM-005",
+            "contenido": "Las familias, su diversidad y su papel en la comunidad y la sociedad.",
+            "pda_grado_1": "Describe a los integrantes de su familia y el papel de cada uno. Reconoce que existen distintos tipos de familia.",
+            "pda_grado_2": "Reconoce la diversidad de formas de ser familia y las respeta. Comparte tradiciones y costumbres de su familia con sus pares.",
+            "pda_grado_3": "Reflexiona sobre el papel de la familia en la construcción de su identidad. Identifica cómo las familias contribuyen al bienestar de la comunidad."
+          },
+          {
+            "id": "F2-HUM-006",
+            "contenido": "Las prácticas y tradiciones comunitarias como expresión de la identidad cultural y el patrimonio colectivo.",
+            "pda_grado_1": "Reconoce algunas prácticas y tradiciones de su comunidad. Participa en festividades y celebraciones culturales de su entorno.",
+            "pda_grado_2": "Describe prácticas y tradiciones de su comunidad y las comparte con sus pares. Reconoce el valor cultural de las tradiciones comunitarias.",
+            "pda_grado_3": "Indaga sobre el origen y significado de las tradiciones de su comunidad. Propone formas de preservar y transmitir las tradiciones."
+          }
+        ]
+      }
+    ]
+  }
+}
