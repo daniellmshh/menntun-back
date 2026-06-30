@@ -12,6 +12,7 @@ import { StudentsModule } from "./modules/students/students.module";
 import { PlanningModule } from "./modules/planning/planning.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
+import { AppController } from "./app.controller";
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { RolesGuard } from "./common/guards/roles.guard";
     StudentsModule,
     PlanningModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_GUARD,
