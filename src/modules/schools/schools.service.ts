@@ -17,11 +17,13 @@ import { RequestUser } from "../../common/types";
 import { UserRole } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
 import { createClient } from "@supabase/supabase-js";
-
-const CORE_MODULES = ["auth", "schools", "academic"];
+const CORE_MODULES = ["auth", "schools", "academic", "schoolYears", "gradesCatalog", "groups"];
 
 const ALL_MODULES = [
   "academic",
+  "schoolYears",
+  "gradesCatalog",
+  "groups",
   "students",
   "teachers",
   "parents",
