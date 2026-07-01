@@ -17,7 +17,7 @@ import { RequestUser } from "../../common/types";
 import { UserRole } from "@prisma/client";
 import { ConfigService } from "@nestjs/config";
 import { createClient } from "@supabase/supabase-js";
-const CORE_MODULES = ["auth", "schools", "academic", "schoolYears", "gradesCatalog", "groups"];
+const CORE_MODULES = ["auth", "schools"];
 
 const ALL_MODULES = [
   "academic",
@@ -174,12 +174,14 @@ export class SchoolsService {
       orderBy: { module: "asc" },
     });
 
-    // Return full module list with active status
-    return ALL_MODULES.map((module) => ({
-      module,
-      active: activeModules.find((m) => m.module === module)?.active ?? false,
-      isCore: CORE_MODULES.includes(module),
-    }));
+    // Return full module list with active status, excluding internal system modules
+    return ALL_MODULES
+      .filter((module) => !["auth", "schools"].includes(module))
+      .map((module) => ({
+        module,
+        active: activeModules.find((m) => m.module === module)?.active ?? false,
+        isCore: CORE_MODULES.includes(module),
+      }));
   }
 
   // ─── UPDATE MODULE STATUS ─────────────────────────────────────────
