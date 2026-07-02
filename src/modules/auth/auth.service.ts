@@ -129,7 +129,7 @@ export class AuthService {
       },
     });
 
-    const activeSchoolNames = activeSchoolModules.map((sm) => sm.module.toLowerCase());
+    const activeSchoolNames = activeSchoolModules.map((sm) => sm.module);
 
     // 2. If the user is a TEACHER, also filter by their personal allowedModules list
     if (currentUser.role === UserRole.TEACHER) {
@@ -144,7 +144,7 @@ export class AuthService {
       if (allowedModules.length > 0) {
         const allowedLower = allowedModules.map((m) => m.toLowerCase());
         // Only return modules that are both active at school level AND allowed for this teacher
-        const filtered = activeSchoolNames.filter((m) => allowedLower.includes(m));
+        const filtered = activeSchoolNames.filter((m) => allowedLower.includes(m.toLowerCase()));
         return Array.from(new Set(filtered));
       }
     }

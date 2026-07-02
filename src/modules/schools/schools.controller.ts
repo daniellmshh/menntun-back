@@ -103,8 +103,8 @@ export class SchoolsController {
 
   // Enable or disable modules for a school
   @Patch(":id/modules")
-  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
-  @ApiOperation({ summary: "Enable or disable modules" })
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: "Enable or disable modules (SUPER_ADMIN only)" })
   async updateModules(
     @Param("id") id: string,
     @Body() dto: UpdateModulesDto,

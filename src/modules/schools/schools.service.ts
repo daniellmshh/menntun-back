@@ -190,11 +190,8 @@ export class SchoolsService {
     dto: UpdateModulesDto,
     currentUser: RequestUser,
   ) {
-    if (
-      currentUser.role !== UserRole.SUPER_ADMIN &&
-      (currentUser.role !== UserRole.SCHOOL_ADMIN || currentUser.schoolId !== schoolId)
-    ) {
-      throw new ForbiddenException("Only SUPER_ADMIN or the school's SCHOOL_ADMIN can change module status");
+    if (currentUser.role !== UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException("Only SUPER_ADMIN can change module status");
     }
 
     const school = await prisma.school.findUnique({ where: { id: schoolId } });
