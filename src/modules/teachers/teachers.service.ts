@@ -58,6 +58,7 @@ export class TeachersService {
         },
         teacherProfile: {
           select: {
+            id: true,
             employeeNumber: true,
             specialty: true,
             hireDate: true,
