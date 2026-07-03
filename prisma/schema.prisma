@@ -105,6 +105,30 @@ enum EjeArticulador {
   APROPIACION_TECNOLOGIA
 }
 
+enum SolicitudEstado {
+  DRAFT
+  SUBMITTED
+  EN_REVISION
+  APROBADA
+  MATRICULADO
+  RECHAZADA
+  CANCELADA
+}
+
+enum DocumentoEstado {
+  PENDIENTE
+  RECIBIDO
+  VALIDADO
+  RECHAZADO
+}
+
+enum CargoEstado {
+  PENDIENTE
+  PAGADO
+  VENCIDO
+  CANCELADO
+}
+
 // ─── SCHOOLS ───────────────────────────
 
 model School {
@@ -119,13 +143,14 @@ model School {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  users         User[]
-  schoolModules SchoolModule[]
-  schoolYears   SchoolYear[]
-  grades        Grade[]
-  groups        Group[]
-  subjects      Subject[]
-  notices       Notice[]
+  users                  User[]
+  schoolModules          SchoolModule[]
+  schoolYears            SchoolYear[]
+  grades                 Grade[]
+  groups                 Group[]
+  subjects               Subject[]
+  notices                Notice[]
+  solicitudesInscripcion SolicitudInscripcion[]
 
   @@map("schools")
 }
@@ -155,9 +180,11 @@ model SchoolYear {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  school  School   @relation(fields: [schoolId], references: [id])
-  periods Period[]
-  groups  Group[]
+  school                 School                 @relation(fields: [schoolId], references: [id])
+  periods                Period[]
+  groups                 Group[]
+  solicitudesInscripcion SolicitudInscripcion[]
+  cargosInscripcion      CargoInscripcion[]
 
   @@map("school_years")
 }
@@ -233,13 +260,15 @@ model StudentProfile {
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  user           User            @relation(fields: [userId], references: [id])
-  enrollments    Enrollment[]
-  attendances    Attendance[]
-  gradeRecords   GradeRecord[]
-  taskDeliveries TaskDelivery[]
-  parentLinks    ParentStudent[]
-  scholarships   Scholarship[]
+  user                   User                   @relation(fields: [userId], references: [id])
+  enrollments            Enrollment[]
+  attendances            Attendance[]
+  gradeRecords           GradeRecord[]
+  taskDeliveries         TaskDelivery[]
+  parentLinks            ParentStudent[]
+  scholarships           Scholarship[]
+  solicitudesInscripcion SolicitudInscripcion[]
+  cargosInscripcion      CargoInscripcion[]
 
   @@map("student_profiles")
 }
@@ -523,3 +552,85 @@ model Scholarship {
   @@map("scholarships")
 }
 
+// ─── ENROLLMENTS MODULE ────────────────
+
+model SolicitudInscripcion {
+  id               String  @id @default(uuid())
+  schoolId         String  @map("school_id")
+  schoolYearId     String? @map("school_year_id")
+  studentProfileId String? @map("student_profile_id")
+
+  firstName String    @map("first_name")
+  lastName  String    @map("last_name")
+  birthDate DateTime? @map("birth_date")
+  gender    Gender?
+  bloodType String?   @map("blood_type")
+  address   String?
+
+  nivelEducativo NivelEducativo? @map("nivel_educativo")
+  gradoPropuesto String?         @map("grado_propuesto")
+
+  estado            SolicitudEstado @default(DRAFT)
+  cancelationReason String?         @map("cancelation_reason")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  school         School          @relation(fields: [schoolId], references: [id])
+  schoolYear     SchoolYear?     @relation(fields: [schoolYearId], references: [id])
+  studentProfile StudentProfile? @relation(fields: [studentProfileId], references: [id])
+
+  documentos DocumentoSolicitud[]
+  padres     DatosPadreSolicitud[]
+  cargos     CargoInscripcion[]
+
+  @@map("solicitudes_inscripcion")
+}
+
+model DocumentoSolicitud {
+  id                     String          @id @default(uuid())
+  solicitudInscripcionId String          @map("solicitud_inscripcion_id")
+  tipoDocumento          String          @map("tipo_documento")
+  fileUrl                String?         @map("file_url")
+  estado                 DocumentoEstado @default(PENDIENTE)
+  observaciones          String?
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
+
+  solicitud SolicitudInscripcion @relation(fields: [solicitudInscripcionId], references: [id], onDelete: Cascade)
+
+  @@map("documentos_solicitud")
+}
+
+model DatosPadreSolicitud {
+  id                     String  @id @default(uuid())
+  solicitudInscripcionId String  @map("solicitud_inscripcion_id")
+  firstName              String  @map("first_name")
+  lastName               String  @map("last_name")
+  email                  String
+  phone                  String?
+  relationship           String
+  isPrimary              Boolean @default(false) @map("is_primary")
+
+  solicitud SolicitudInscripcion @relation(fields: [solicitudInscripcionId], references: [id], onDelete: Cascade)
+
+  @@map("datos_padres_solicitud")
+}
+
+model CargoInscripcion {
+  id                     String      @id @default(uuid())
+  studentProfileId       String      @map("student_profile_id")
+  schoolYearId           String?     @map("school_year_id")
+  solicitudInscripcionId String?     @map("solicitud_inscripcion_id")
+  concepto               String
+  monto                  Decimal     @db.Decimal(10, 2)
+  fechaVencimiento       DateTime    @map("fecha_vencimiento")
+  estado                 CargoEstado @default(PENDIENTE)
+  createdAt              DateTime    @default(now()) @map("created_at")
+  updatedAt              DateTime    @updatedAt @map("updated_at")
+
+  studentProfile StudentProfile        @relation(fields: [studentProfileId], references: [id])
+  schoolYear     SchoolYear?           @relation(fields: [schoolYearId], references: [id])
+  solicitud      SolicitudInscripcion? @relation(fields: [solicitudInscripcionId], references: [id], onDelete: SetNull)
+
+  @@map("cargos_inscripcion")
+}

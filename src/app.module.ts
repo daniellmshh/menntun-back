@@ -10,6 +10,7 @@ import { AcademicModule } from "./modules/academic/academic.module";
 import { TeachersModule } from "./modules/teachers/teachers.module";
 import { StudentsModule } from "./modules/students/students.module";
 import { PlanningModule } from "./modules/planning/planning.module";
+import { EnrollmentsModule } from "./modules/enrollments/enrollments.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 import { AppController } from "./app.controller";
@@ -28,6 +29,7 @@ import { AppController } from "./app.controller";
     TeachersModule,
     StudentsModule,
     PlanningModule,
+    EnrollmentsModule,
   ],
   controllers: [AppController],
   providers: [
