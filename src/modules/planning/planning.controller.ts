@@ -48,12 +48,12 @@ export class PlanningController {
     return successResponse(data);
   }
 
-  @Get("curriculum-catalog")
+  @Get("catalogo")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER)
-  @ApiOperation({ summary: "Obtener el catálogo completo de campos formativos y contenidos de la SEP" })
-  getCurriculumCatalog() {
-    const data = this.nemKnowledgeService.getCurriculumCatalog();
-    return successResponse(data);
+  @ApiOperation({ summary: "Obtener el catálogo completo de campos formativos y contenidos de la SEP junto con lo operativo" })
+  async getCatalogo(@CurrentUser() currentUser: RequestUser) {
+    const catalogo = this.planningService.getCatalogo(currentUser);
+    return { data: catalogo, meta: null, error: null };
   }
 
   @Get()

@@ -1,31 +1,36 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsUUID, IsInt, Min, MinLength, ValidateIf, IsArray } from "class-validator";
+import {
+  IsString, IsNotEmpty, IsEnum, IsOptional, IsUUID,
+  IsInt, Min, IsArray, ValidateNested, IsBoolean
+} from "class-validator";
+import { Type } from "class-transformer";
 import { PlanningModalidad, NivelEducativo, PlanningStatus, CampoFormativo, EjeArticulador } from "@prisma/client";
 
-export class GeneratePlanningDto {
+export class CampoSeleccionadoDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(5, { message: "El contexto inicial debe tener al menos 5 caracteres" })
-  @ValidateIf((o) => !o.modalidad)
-  @MinLength(20, { message: "El contexto inicial debe tener al menos 20 caracteres cuando no se especifica la modalidad" })
-  contextoInicial: string;
+  campoFormativoId: string; // e.g. "LENGUAJES"
 
-  @IsOptional()
-  @IsEnum(PlanningModalidad)
-  modalidad?: PlanningModalidad;
-
-  @IsOptional()
-  @IsEnum(CampoFormativo)
-  campoFormativo?: CampoFormativo;
-
-  @IsOptional()
   @IsString()
-  contenidoId?: string;
+  @IsNotEmpty()
+  contenidoId: string; // e.g. "L_01"
+}
+
+export class GeneratePlanningDto {
+  // Curricular selections (new multi-field format)
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CampoSeleccionadoDto)
+  camposSeleccionados: CampoSeleccionadoDto[];
+
+  @IsEnum(PlanningModalidad)
+  modalidad: PlanningModalidad;
 
   @IsOptional()
   @IsArray()
-  @IsEnum(EjeArticulador, { each: true })
-  ejesArticuladores?: EjeArticulador[];
+  @IsString({ each: true })
+  ejesArticuladores?: string[];
 
+  // Mode: integrated vs standalone
   @IsOptional()
   @IsUUID()
   groupId?: string;
@@ -37,15 +42,49 @@ export class GeneratePlanningDto {
   @IsOptional()
   @IsEnum(NivelEducativo)
   standaloneLevel?: NivelEducativo;
- 
+
   @IsOptional()
   @IsInt()
   @Min(1)
   standaloneGradeOrder?: number;
 
+  // Admin mode
   @IsOptional()
   @IsUUID()
   targetTeacherProfileId?: string;
+
+  // Sara format fields
+  @IsOptional()
+  @IsString()
+  periodoProyecto?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  problematica: string;
+
+  @IsString()
+  @IsNotEmpty()
+  proposito: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  instrumentoEvaluacion?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  ajustesRazonables?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  actividadesPmc?: string[];
+
+  // Still keep contextoInicial as optional context hint
+  @IsOptional()
+  @IsString()
+  contextoInicial?: string;
 }
 
 export class UpdatePlanningDto {
@@ -56,33 +95,41 @@ export class UpdatePlanningDto {
 
   @IsOptional()
   @IsString()
-  contenidos?: string;
+  periodoProyecto?: string;
 
   @IsOptional()
   @IsString()
-  pda?: string;
+  problematica?: string;
 
   @IsOptional()
   @IsString()
-  relevanciaSocial?: string;
+  proposito?: string;
 
   @IsOptional()
-  @IsString()
-  produccionSugerida?: string;
+  @IsArray()
+  @IsString({ each: true })
+  instrumentoEvaluacion?: string[];
 
   @IsOptional()
-  fases?: any;
+  @IsArray()
+  @IsString({ each: true })
+  ajustesRazonables?: string[];
 
   @IsOptional()
-  recursos?: any;
+  @IsArray()
+  @IsString({ each: true })
+  actividadesPmc?: string[];
 
   @IsOptional()
-  @IsEnum(CampoFormativo)
-  campoFormativo?: CampoFormativo;
+  fundamentacion?: any;
 
   @IsOptional()
-  @IsEnum(EjeArticulador, { each: true })
-  ejesArticuladores?: EjeArticulador[];
+  matrizDidactica?: any;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  ejesArticuladores?: string[];
 
   @IsOptional()
   @IsEnum(PlanningStatus)

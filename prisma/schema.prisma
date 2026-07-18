@@ -513,16 +513,27 @@ model Planning {
   campoFormativo       CampoFormativo
   ejesArticuladores    EjeArticulador[]
   contextoInicial      String            @map("contexto_inicial")
-  contenidos           String
-  pda                  String            @map("pda")
-  relevanciaSocial     String            @map("relevancia_social")
-  produccionSugerida   String            @map("produccion_sugerida")
-  fases                Json
+  // Legacy fields (kept for backward compat, now also stored in fundamentacion)
+  contenidos           String            @default("")
+  pda                  String            @default("") @map("pda")
+  relevanciaSocial     String            @default("") @map("relevancia_social")
+  produccionSugerida   String            @default("") @map("produccion_sugerida")
+  // Legacy fases (kept, but matrizDidactica is the new format)
+  fases                Json              @default("[]")
   recursos             Json?
   title                String
-  content              String
+  content              String            @default("")
   weekStart            DateTime          @map("week_start") @db.Date
   status               PlanningStatus    @default(DRAFT)
+  // New Sara format fields
+  periodoProyecto      String?           @map("periodo_proyecto")
+  problematica         String?
+  proposito            String?
+  instrumentoEvaluacion String[]         @default([]) @map("instrumento_evaluacion")
+  ajustesRazonables    String[]          @default([]) @map("ajustes_razonables")
+  actividadesPmc       String[]          @default([]) @map("actividades_pmc")
+  fundamentacion       Json?             // [{campoFormativo, nombreCampo, contenido, pda}]
+  matrizDidactica      Json?             @map("matriz_didactica") // [{momento, filas:[{actividades,campo_pda,organizacion,recursos,evaluacion}]}]
   createdAt            DateTime          @default(now()) @map("created_at")
   updatedAt            DateTime          @updatedAt @map("updated_at")
 

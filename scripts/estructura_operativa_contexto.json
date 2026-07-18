@@ -1,0 +1,51 @@
+{
+  "plantilla_planeacion_nem": {
+    "encabezado_identificacion": {
+      "maestra": "Nombre completo de la educadora",
+      "grado": "Grado escolar (1°, 2° o 3°)",
+      "grupo": "Letra del grupo (ej. 'A', 'B')",
+      "periodo_proyecto": "Rango de fechas (ej. '8 AL 19 DE JUNIO DE 2026')"
+    },
+    "metadatos_operativos": {
+      "nombre_proyecto": "Título creativo y motivador del proyecto",
+      "modalidad_trabajo": "Modalidad elegida de entre las Metodologías Oficiales",
+      "proposito_justificacion": "Propósito formativo claro y centrado en los alumnos de preescolar",
+      "problematica_contexto": "Problemática analítica del diagnóstico socioeducativo de la escuela",
+      "instrumento_evaluacion": "Herramientas de evaluación formativa (ej. 'Rúbrica de evaluación, manifestaciones y diario de la educadora.')"
+    },
+    "catalogos_operativos_sara": {
+      "problematicas_comunes_programa_analitico": [
+        "Lenguaje oral y convivencia pacífica",
+        "Dificultad para identificar situaciones de riesgo en el hogar, escuela y comunidad",
+        "Falta de hábitos saludables de higiene bucal o alimentación",
+        "Dificultades en la resolución pacífica de conflictos y seguimiento de acuerdos"
+      ],
+      "actividades_pmc": [
+        "Entregar un diploma a los alumnos que cuenten con una asistencia diaria completa al finalizar el mes.",
+        "Hagamos nuestro cuento: 'Érase Una Vez un Gran Año' (Evento de fin de cursos)",
+        "Campañas de señalización vial en el horario de entrada y salida."
+      ],
+      "ajustes_razonables": [
+        "Uso de pictogramas para indicar la acción a realizar durante las actividades.",
+        "Realizar cantos en momentos rutinarios para la estimulación del lenguaje oral.",
+        "Realizar pausas activas con música de su interés.",
+        "Diseñar una caja de accesorios táctiles para apoyo sensorial (discapacidad visual)."
+      ],
+      "instrumentos_evaluacion_formativa": [
+        "Rúbrica de evaluación con indicadores específicos de logro",
+        "Diario de la educadora (registro de incidentes y observaciones de clase)",
+        "Registro anecdótico de manifestaciones y conductas significativas",
+        "Portafolio de producciones gráficas de las niñas y los niños"
+      ]
+    },
+    "matriz_didactica": {
+      "columnas": [
+        "ACTIVIDADES (Momentos de la metodología)",
+        "CAMPO FORMATIVO Y PDA QUE SE ABORDA (Contenido y PDA de curriculo_pedagogico_nem.json)",
+        "ORGANIZACIÓN (ej. 'Grupo completo', 'Equipos', 'Individual')",
+        "RECURSOS Y MATERIALES (Insumos requeridos para el momento)",
+        "EVALUACIÓN FORMATIVA (Criterios e indicadores observables de aprendizaje)"
+      ]
+    }
+  }
+}

@@ -1,0 +1,416 @@
+{
+  "catalogo_sep_fase2": {
+    "campos_formativos": [
+      {
+        "nombre_campo": "Lenguajes",
+        "finalidad": "Desarrollar y ampliar sus posibilidades para usar diversos lenguajes, en distintos contextos y situaciones cotidianas, ya sea para comunicarse, interactuar y compartir su forma de percibir y entender el mundo, así como para expresar sus ideas, emociones, gustos, opiniones, pensamientos y saberes, a la vez que interpretan los de otras personas.",
+        "contenidos": [
+          {
+            "id_contenido": "L_01",
+            "nombre_contenido": "Comunicación oral de necesidades, emociones, gustos, ideas y saberes, a través de los diversos lenguajes, desde una perspectiva comunitaria.",
+            "pda": {
+              "grado_1": "Emplea palabras, gestos, señas, imágenes, sonidos o movimientos corporales que aprende en su comunidad, para expresar necesidades, ideas, emociones y gustos que reflejan su forma de interpretar y actuar en el mundo.",
+              "grado_2": "Manifiesta oralmente y de manera clara necesidades, emociones, gustos, preferencias e ideas, que construye en la convivencia diaria, y se da a entender apoyándose de distintos lenguajes.",
+              "grado_3": "De manera oral, expresa ideas completas sobre necesidades, vivencias, emociones, gustos, preferencias y saberes a distintas personas, combinando los lenguajes."
+            }
+          },
+          {
+            "id_contenido": "L_02",
+            "nombre_contenido": "Narración de historias mediante diversos lenguajes, en un ambiente donde niñas y niños participen y se apropien de la cultura, a través de diferentes textos.",
+            "pda": {
+              "grado_1": "Evoca y narra fragmentos de diferentes textos literarios −leyendas, cuentos, fábulas, historias−, y relatos de la comunidad, que escucha en voz de otras personas que las narran o leen. Comparte las emociones que le provocan.",
+              "grado_2": "Lee con apoyo y narra con una secuencia lógica, diferentes textos literarios como leyendas, cuentos, fábulas, historias, y relatos de la comunidad, en las que aprecia otras formas de vida, de pensamiento y de comportamiento.",
+              "grado_3": "Narra historias que inventa considerando los momentos de inicio, desarrollo y final, de manera individual o colectiva."
+            }
+          },
+          {
+            "id_contenido": "L_03",
+            "nombre_contenido": "Recursos y juegos del lenguaje que fortalecen la diversidad de formas de expresión oral, y que rescatan la o las lenguas de la comunidad y de otros lugares.",
+            "pda": {
+              "grado_1": "Participa en juegos del lenguaje de la tradición oral de las familias o la comunidad y los expresa con fluidez.",
+              "grado_2": "Combina recursos de los lenguajes, tales como movimientos corporales, gestos, velocidades, ritmos, entre otros, al decir rimas, poemas, canciones, retahílas, trabalenguas, adivinanzas y otros juegos del lenguaje.",
+              "grado_3": "Participa en juegos del lenguaje de la tradición oral de la comunidad o de otros lugares, los dice con fluidez, ritmo y claridad."
+            }
+          },
+          {
+            "id_contenido": "L_04",
+            "nombre_contenido": "Reconocimiento y aprecio de la diversidad lingüística, al identificar las formas en que se comunican las distintas personas de la comunidad.",
+            "pda": {
+              "grado_1": "Reconoce que hay personas que se comunican en lenguas distintas a la propia.",
+              "grado_2": "Se familiariza con lenguas distintas a la suya que escucha en su comunidad e incorpora a su comunicación, expresiones de origen indígena, extranjero o de las lenguas de señas.",
+              "grado_3": "Identifica y utiliza algunas palabras, frases o señas de la diversidad lingüística."
+            }
+          },
+          {
+            "id_contenido": "L_05",
+            "nombre_contenido": "Representación gráfica de ideas y descubrimientos, al explorar los diversos textos que hay en su comunidad y otros lugares.",
+            "pda": {
+              "grado_1": "Explora y descubre diversos textos de su hogar y escuela, como cuentos, carteles, letreros o mensajes, e interpreta qué dicen a partir de las imágenes y marcas gráficas, e identifica para qué sirven.",
+              "grado_2": "Relaciona el contenido de los diversos textos de su hogar y escuela con sus experiencias de vida.",
+              "grado_3": "Representa gráficamente, con recursos personales, ideas y descubrimientos del entorno mediante textos conocidos."
+            }
+          },
+          {
+            "id_contenido": "L_06",
+            "nombre_contenido": "Expresión de emociones y experiencias, en igualdad de oportunidades, apoyándose de recursos gráficos personales y de los lenguajes artísticos.",
+            "pda": {
+              "grado_1": "Representa emociones y experiencias de manera gráfica, haciendo uso de dibujos o recursos de los lenguajes artísticos.",
+              "grado_2": "Elige algunos recursos gráficos, como marcas propias, símbolos, dibujos o algunos otros de los lenguajes artísticos, al representar emociones y experiencias.",
+              "grado_3": "Combina recursos gráficos y de los lenguajes artísticos, en la representación de emociones y experiencias."
+            }
+          },
+          {
+            "id_contenido": "L_07",
+            "nombre_contenido": "Producciones gráficas dirigidas a diversas destinatarias y diversos destinatarios, para establecer vínculos sociales y acercarse a la cultura escrita.",
+            "pda": {
+              "grado_1": "Reconoce que las producciones gráficas, son una forma de establecer comunicación o vínculos con otras personas.",
+              "grado_2": "Produce textos o mensajes de interés, con formas gráficas personales, copiando textos o dictando a alguien, con distintos propósitos y destinatarios.",
+              "grado_3": "Usa grafías para representar su nombre y otras palabras conocidas con diversos propósitos."
+            }
+          },
+          {
+            "id_contenido": "L_08",
+            "nombre_contenido": "Reconocimiento de ideas o emociones en la interacción con manifestaciones culturales y artísticas y con la naturaleza, a través de diversos lenguajes.",
+            "pda": {
+              "grado_1": "Describe características de manifestaciones culturales y artísticas de la comunidad, como los colores, texturas, tamaños, sonidos y posturas que reconoce, entre otros elementos.",
+              "grado_2": "Interpreta manifestaciones artísticas y culturales diversas (fotografías, música regional, murales, danzas, entre otras) a partir de los elementos que las componen.",
+              "grado_3": "Explica lo que le gusta o disgusta, lo que se imagina y le provocan las manifestaciones culturales y artísticas (pinturas, zonas arqueológicas, poemas, artesanías, entre otras), a partir de sus elementos, como formas, trazos, personas, objetos o sonidos y ritmos."
+            }
+          },
+          {
+            "id_contenido": "L_09",
+            "nombre_contenido": "Producción de expresiones creativas con los distintos elementos de los lenguajes artísticos.",
+            "pda": {
+              "grado_1": "Experimenta con los diversos elementos de los lenguajes artísticos y descubre sus posibilidades de creación y expresión.",
+              "grado_2": "Combina elementos de los lenguajes artísticos, tales como formas, colores, texturas, tamaños, líneas, sonidos, música, voces, entre otros, en producciones creativas, para representar el mundo cercano, experiencias personales, situaciones imaginarias o algún cuento.",
+              "grado_3": "Enriquece sus producciones creativas de expresión gráfica o corporal, al incluir o retomar elementos, tales como líneas, combinación de colores, formas, imágenes, gestos, posturas, sonidos, entre otros, de las manifestaciones artísticas y culturales."
+            }
+          }
+        ]
+      },
+      {
+        "nombre_campo": "Saberes y Pensamiento Científico",
+        "finalidad": "Comprensión para explicar procesos y fenómenos naturales en su relación con lo social, los cuales ocurren en el mundo con base en los saberes y el pensamiento científico por medio de la indagación y experimentación.",
+        "contenidos": [
+          {
+            "id_contenido": "SPC_01",
+            "nombre_contenido": "Exploración de la diversidad natural que existe en la comunidad y en otros lugares.",
+            "pda": {
+              "grado_1": "Usa sus sentidos para percibir en su entorno cercano, plantas que le llaman la atención y describe características tales como: olor, color, forma, textura o tamaño, si tienen hojas, flores o frutos.",
+              "grado_2": "Observa y describe en su lengua materna, animales de su entorno: cómo son, cómo crecen, dónde viven, qué comen, los cuidados que necesitan y otros aspectos que le causan curiosidad.",
+              "grado_3": "Distingue algunas características del entorno natural: plantas, animales, cuerpos de agua, clima, entre otras."
+            }
+          },
+          {
+            "id_contenido": "SPC_02",
+            "nombre_contenido": "Saberes familiares y comunitarios que resuelven situaciones y necesidades en el hogar y la comunidad.",
+            "pda": {
+              "grado_1": "Identifica saberes familiares que son útiles para la vida, sin poner en riesgo su integridad física y la de las otras personas.",
+              "grado_2": "Selecciona saberes familiares y comunitarios útiles, para resolver situaciones diversas, los compara con los de sus pares y cuida su integridad y la de los demás.",
+              "grado_3": "Propone algunos saberes familiares y comunitarios, para resolver necesidades y situaciones en su hogar, escuela y comunidad."
+            }
+          },
+          {
+            "id_contenido": "SPC_03",
+            "nombre_contenido": "Los seres vivos: elementos, procesos y fenómenos naturales que ofrecen oportunidades para entender y explicar hechos cotidianos, desde distintas perspectivas.",
+            "pda": {
+              "grado_1": "Hace preguntas sobre elementos de la naturaleza que le dan curiosidad, y las enriquece con las de sus pares.",
+              "grado_2": "Hace preguntas sobre la naturaleza y, en colaboración con sus pares, pone a prueba ideas para encontrar respuestas que tengan sentido.",
+              "grado_3": "Planifica de manera colaborativa indagaciones para ampliar sus conocimientos sobre la naturaleza, el planeta y el universo: hace preguntas, explora su entorno, expone sus ideas, busca información, compara lo que sabe, registra datos y explica sus hallazgos."
+            }
+          },
+          {
+            "id_contenido": "SPC_04",
+            "nombre_contenido": "Los saberes numéricos como herramienta para resolver situaciones del entorno, en diversos contextos socioculturales.",
+            "pda": {
+              "grado_1": "Reconoce números en su contexto sociocultural e interpreta su significado (saber la dirección de su casa, su peso o talla, hacer compras, entre otros).",
+              "grado_2": "Usa números con distintos propósitos y en distintas situaciones.",
+              "grado_3": "Dice la serie numérica en orden y amplía su rango de conteo."
+            }
+          },
+          {
+            "id_contenido": "SPC_05",
+            "nombre_contenido": "El dominio del espacio y reconocimiento de formas en el entorno desde diversos puntos de observación y mediante desplazamientos o recorridos.",
+            "pda": {
+              "grado_1": "Usa el espacio inmediato al desplazarse y hacer recorridos en los que ubica, de manera intuitiva, la posición de objetos y personas.",
+              "grado_2": "Ubica personas, objetos y elementos de su entorno con referentes personales y los comunica a sus pares y otras personas.",
+              "grado_3": "Expresa la posición y ubicación de objetos, lugares y personas con respecto a su cuerpo y a otros objetos; usa gradualmente referentes convencionales."
+            }
+          },
+          {
+            "id_contenido": "SPC_06",
+            "nombre_contenido": "Las magnitudes de longitud, peso, capacidad y tiempo en situaciones cotidianas del hogar y del entorno sociocultural.",
+            "pda": {
+              "grado_1": "Compara “a ojo” y de manera perceptiva, la longitud de dos objetos y dice cuál es más largo o corto.",
+              "grado_2": "Compara la longitud de dos o más objetos de uso cotidiano de manera directa o por superposición, contrasta sus ideas con sus pares.",
+              "grado_3": "Estima y compara la longitud de dos o más objetos con apoyo de un intermediario, y expresa cuál es más largo, más corto, más ancho, más angosto o si son iguales; contrasta sus ideas con las de sus pares y las representa de manera gráfica."
+            }
+          },
+          {
+            "id_contenido": "SPC_07",
+            "nombre_contenido": "Clasificación y experimentación con objetos y elementos del entorno que reflejan la diversidad de la comunidad o región.",
+            "pda": {
+              "grado_1": "Identifica de manera intuitiva la forma en que se organizan los objetos en su hogar y escuela: lo que hay en la cocina, en la sala, en los estantes de su escuela, en el espacio escolar, entre otros.",
+              "grado_2": "Compara y organiza elementos del entorno, como objetos cotidianos o artesanías de su comunidad, de acuerdo con uno o dos criterios definidos con sus pares: color, forma, tamaño, textura o uso.",
+              "grado_3": "Dialoga con sus pares para definir criterios de clasificación de objetos y elementos del entorno natural y sociocultural, que respondan a distintos propósitos."
+            }
+          },
+          {
+            "id_contenido": "SPC_08",
+            "nombre_contenido": "Características de objetos y comportamiento de los materiales del entorno sociocultural.",
+            "pda": {
+              "grado_1": "Observa y explora los materiales con los que están hechos los objetos, a través de juegos y actividades diversas.",
+              "grado_2": "Percibe y describe cómo cambian los objetos y materiales de la naturaleza y de su entorno, al manipularlos o modificar sus condiciones, al modelar con masa, al observar cómo se derrite un helado si se deja al sol o cómo se mezclan los ingredientes para hacer un pastel.",
+              "grado_3": "Distingue los materiales de la naturaleza, de los fabricados por el ser humano."
+            }
+          },
+          {
+            "id_contenido": "SPC_09",
+            "nombre_contenido": "Objetos y artefactos tecnológicos que mejoran y facilitan la vida familiar y de la comunidad.",
+            "pda": {
+              "grado_1": "Usa en su vida diaria juguetes y artefactos tecnológicos que se encuentran en su hogar o escuela, observa cómo se usan: carritos, muñecos, tijeras, mecedoras, utensilios de cocina, entre otros.",
+              "grado_2": "Observa y explica cómo entiende que funcionan los juguetes, objetos o artefactos tecnológicos del hogar, la escuela y la comunidad, por qué son útiles, y qué beneficios aportan a las personas y a la comunidad.",
+              "grado_3": "Reconoce que las personas utilizan diferentes objetos o artefactos tecnológicos para desarrollar su oficio o profesión, en beneficio propio y de la comunidad."
+            }
+          }
+        ]
+      },
+      {
+        "nombre_campo": "Ética, Naturaleza y Sociedades",
+        "finalidad": "Relación del ser humano con la sociedad y la naturaleza desde la comprensión crítica de los procesos sociales, políticos, naturales y culturales en diversas comunidades.",
+        "contenidos": [
+          {
+            "id_contenido": "ENS_01",
+            "nombre_contenido": "Interacción, cuidado, conservación y regeneración de la naturaleza, que favorece la construcción de una conciencia socioambiental.",
+            "pda": {
+              "grado_1": "Convive con su entorno natural, con plantas y animales; expresa lo que percibe y disfruta acerca de ellos.",
+              "grado_2": "Se relaciona con la naturaleza y considera la importancia de sus elementos para la vida (aire, sol, agua y suelo).",
+              "grado_3": "Interactúa con respeto y empatía en la naturaleza, e identifica algunos elementos y cuidados que necesitan los seres vivos."
+            }
+          },
+          {
+            "id_contenido": "ENS_02",
+            "nombre_contenido": "Transformación responsable del entorno al satisfacer necesidades básicas de alimentación, vestido y vivienda.",
+            "pda": {
+              "grado_1": "Identifica objetos, prendas de vestir o alimentos que provienen de la naturaleza y los usa o consume de manera racional.",
+              "grado_2": "Observa que las personas transforman la naturaleza al interactuar con ella para satisfacer sus necesidades.",
+              "grado_3": "Asocia los recursos naturales de donde provienen algunos alimentos y explica con sus palabras, cómo cambia la naturaleza al obtenerlos y producirlos, así como al elaborar o fabricar prendas de vestir."
+            }
+          },
+          {
+            "id_contenido": "ENS_03",
+            "nombre_contenido": "Construcción de la identidad y pertenencia a una comunidad y país a partir del conocimiento de su historia, sus celebraciones, conmemoraciones tradicionales y obras del patrimonio artístico y cultural.",
+            "pda": {
+              "grado_1": "Comparte con sus pares lo que entiende del significado de algunas celebraciones y conmemoraciones de su comunidad en las que participa o ha participado.",
+              "grado_2": "Construye de manera informal un sentido de pertenencia a su comunidad, al interpretar el significado de sus celebraciones y conmemoraciones.",
+              "grado_3": "Aprecia la riqueza de la historia de su comunidad a través de relatos, historias, leyendas, mitos, conmemoraciones, celebraciones tradicionales, obras culturales y artísticas."
+            }
+          },
+          {
+            "id_contenido": "ENS_04",
+            "nombre_contenido": "Cambios que ocurren en los lugares, entornos, objetos, costumbres y formas de vida de las distintas familias y comunidades con el paso del tiempo.",
+            "pda": {
+              "grado_1": "Recuerda y comparte acontecimientos importantes en su historia personal con apoyo de fotografías, objetos y narraciones de integrantes de su familia, y se percata de cómo ha cambiado.",
+              "grado_2": "Identifica, con ayuda, y a través de narraciones, cartas, fotografías, objetos, ropa y otros elementos, acontecimientos y sucesos importantes ocurridos en su familia a lo largo del tiempo.",
+              "grado_3": "Comprende que, con el paso del tiempo, se modifican los paisajes, los objetos, las costumbres y las formas de vida de la comunidad, por lo que se debe actuar con responsabilidad para el bienestar individual y colectivo."
+            }
+          },
+          {
+            "id_contenido": "ENS_05",
+            "nombre_contenido": "Labores y servicios que contribuyen al bien común de las distintas familias y comunidades.",
+            "pda": {
+              "grado_1": "Observa y conoce las labores y actividades que desarrollan los integrantes de su familia, e identifica que tienen un impacto en la comunidad.",
+              "grado_2": "Se involucra gradualmente en las labores de su hogar y escuela en condiciones de equidad y se da cuenta de los beneficios que aporta.",
+              "grado_3": "Aprecia las labores y servicios que existen en la comunidad y valora el impacto que tienen para el bienestar común."
+            }
+          },
+          {
+            "id_contenido": "ENS_06",
+            "nombre_contenido": "Los derechos de niñas y niños como base para el bienestar integral y el establecimiento de acuerdos que favorecen la convivencia pacífica.",
+            "pda": {
+              "grado_1": "Se familiariza con algunos de sus derechos, como vivir en una familia, derecho a la protección, a la salud, a jugar, a tener un nombre, una vivienda y acudir a la escuela, los cuales se manifiestan en situaciones cotidianas de su vida.",
+              "grado_2": "Reconoce que todas las niñas y todos los niños tienen derechos, sin importar su origen étnico, condición, color de piel, género, edad, discapacidad o lengua y que deben respetarse en cualquier contexto y lugar.",
+              "grado_3": "Explica con sus palabras y mediante otros lenguajes, lo que entiende de cada uno de los derechos de niñas y niños, y escucha las opiniones de sus pares."
+            }
+          },
+          {
+            "id_contenido": "ENS_07",
+            "nombre_contenido": "La diversidad de personas y familias en la comunidad y su convivencia, en un ambiente de equidad, libertad, inclusión y respeto a los derechos humanos.",
+            "pda": {
+              "grado_1": "Comparte con sus pares información personal acerca de sus gustos, familia, emociones, identidad, entre otros.",
+              "grado_2": "Se da cuenta de que las familias son diversas y distintas entre sí, y que esto favorece la convivencia en un entorno de inclusión y respeto.",
+              "grado_3": "Conversa con sus pares acerca de lo que significa pertenecer a una familia, los cuidados que reciben, las reglas que deben seguir, algunas de sus costumbres, y reconoce que se conforman de diferente manera, sin que una tenga más valor que otra."
+            }
+          },
+          {
+            "id_contenido": "ENS_08",
+            "nombre_contenido": "La cultura de paz como una forma de relacionarse con otras personas para promover la inclusión y el respeto a la diversidad.",
+            "pda": {
+              "grado_1": "Establece acuerdos de convivencia en su salón y escuela para desenvolverse en un ambiente seguro y respetuoso.",
+              "grado_2": "Colabora con la cultura de paz en su hogar y escuela, al convivir de manera respetuosa y armónica.",
+              "grado_3": "Se expresa y participa con libertad y respeto en diversas situaciones y contextos, favoreciendo una cultura de paz y la convivencia pacífica en un marco de inclusión y diversidad."
+            }
+          }
+        ]
+      },
+      {
+        "nombre_campo": "De lo Humano y lo Comunitario",
+        "finalidad": "Experiencias cognitivas, motrices, socioafectivas y creativas que permitan a niñas y niños favorecer progresivamente la construcción de su identidad, el sentido de pertenencia y vida saludable.",
+        "contenidos": [
+          {
+            "id_contenido": "DHC_01",
+            "nombre_contenido": "Construcción de la identidad personal a partir de su pertenencia a un territorio, su origen étnico, cultural y lingüístico, y la interacción con personas cercanas.",
+            "pda": {
+              "grado_1": "Descubre gustos, preferencias, posibilidades motrices y afectivas, en juegos y actividades que contribuyan al conocimiento de sí, en un ambiente que considere la diversidad.",
+              "grado_2": "Reconoce algunos rasgos de su identidad, dice cómo es físicamente, qué se le facilita, qué se le dificulta, qué le gusta, qué no le gusta, y los expresa en su lengua materna o con otros lenguajes.",
+              "grado_3": "Identifica que la lengua que habla, las costumbres familiares y el lugar donde vive contribuyen a la formación de su identidad y pertenencia a una comunidad en la que participa y colabora."
+            }
+          },
+          {
+            "id_contenido": "DHC_02",
+            "nombre_contenido": "Posibilidades de movimiento en diferentes espacios, para favorecer las habilidades motrices.",
+            "pda": {
+              "grado_1": "Explora las posibilidades de movimiento de su cuerpo, en juegos y actividades, de acuerdo con las características y condiciones personales.",
+              "grado_2": "Adapta sus movimientos y fortalece su lateralidad al desplazarse en espacios de la escuela, casa y comunidad en distintas direcciones y con velocidades variadas; descubre nuevas formas de moverse.",
+              "grado_3": "Coordina movimientos con control y equilibrio al resolver situaciones cotidianas, participar en juegos tradicionales y representaciones individuales o colectivas en igualdad de oportunidades y sin distinción de género."
+            }
+          },
+          {
+            "id_contenido": "DHC_03",
+            "nombre_contenido": "Precisión y coordinación en los movimientos al usar objetos, herramientas y materiales, de acuerdo con sus condiciones, capacidades y características.",
+            "pda": {
+              "grado_1": "Explora y manipula objetos, herramientas y materiales de distintas formas, texturas y tamaños.",
+              "grado_2": "Controla sus movimientos al usar objetos, herramientas y materiales en juegos y actividades de experimentación, creación personal y resolución de problemas, atendiendo las normas de seguridad.",
+              "grado_3": "Construye y modela objetos, con control y precisión de sus movimientos; selecciona objetos, herramientas y materiales apropiados para resolver situaciones diversas."
+            }
+          },
+          {
+            "id_contenido": "DHC_04",
+            "nombre_contenido": "Las emociones en la interacción con diversas personas y situaciones.",
+            "pda": {
+              "grado_1": "Identifica emociones como alegría, tristeza, sorpresa, miedo o enojo, al participar en juegos de representación.",
+              "grado_2": "Percibe cambios corporales, y con ayuda, nombra las emociones que experimenta, como: alegría, tristeza, sorpresa, miedo o enojo, y reconoce las situaciones que las provocan.",
+              "grado_3": "Muestra respeto y empatía hacia la expresión de emociones de las personas, comprende cuando alguien necesita ayuda y la ofrece."
+            }
+          },
+          {
+            "id_contenido": "DHC_05",
+            "nombre_contenido": "Interacción con personas de diversos contextos, que contribuyan al establecimiento de relaciones positivas y a una convivencia basada en la aceptación de la diversidad.",
+            "pda": {
+              "grado_1": "Interactúa con diferentes compañeras y compañeros, para establecer relaciones de amistad, igualdad, empatía y colaboración.",
+              "grado_2": "Participa y respeta acuerdos de convivencia en juegos y actividades que implican compartir materiales, establecer turnos, seguir reglas, escuchar con atención, entre otros.",
+              "grado_3": "Se relaciona con respeto y colabora de manera asertiva para el logro de propósitos comunes en juegos y actividades."
+            }
+          },
+          {
+            "id_contenido": "DHC_06",
+            "nombre_contenido": "Cuidado de la salud personal y colectiva, al llevar a cabo acciones de higiene, limpieza, y actividad física, desde los saberes prácticos de la comunidad y la información científica.",
+            "pda": {
+              "grado_1": "Practica hábitos de higiene personal y limpieza en los espacios físicos donde se desenvuelve y al usar objetos, como medidas de conservación de la salud y de prevención de enfermedades.",
+              "grado_2": "Realiza acciones de higiene personal y limpieza, antes, durante y después de realizar sus actividades cotidianas.",
+              "grado_3": "Propone acciones que contribuyen a mantener su salud y bienestar, relacionadas con higiene personal, limpieza y actividad física, considerando los saberes prácticos de la comunidad y las aportaciones científicas."
+            }
+          },
+          {
+            "id_contenido": "DHC_07",
+            "nombre_contenido": "Consumo de alimentos y bebidas que benefician la salud, de acuerdo con los contextos socioculturales.",
+            "pda": {
+              "grado_1": "Expresa gustos y preferencias de bebidas y alimentos que hay en su comunidad, al explorar aromas, colores, texturas y sabores, guardando medidas de seguridad e higiene.",
+              "grado_2": "Reconoce, en las costumbres familiares, la preparación y consumo de alimentos y bebidas, e identifica los que son saludables y los que ponen en riesgo la salud.",
+              "grado_3": "Cuida su salud al llevar a cabo medidas de seguridad, higiene y limpieza, en la preparación y consumo de alimentos y bebidas saludables."
+            }
+          },
+          {
+            "id_contenido": "DHC_08",
+            "nombre_contenido": "Medidas de prevención de accidentes y situaciones de riesgo de acuerdo con el contexto, para el cuidado de la integridad personal y colectiva.",
+            "pda": {
+              "grado_1": "Explora los espacios físicos de su casa, escuela y comunidad para identificar las zonas de seguridad que le permitan mantener su integridad en caso de situaciones de riesgo.",
+              "grado_2": "Expresa qué comportamientos, objetos, materiales y lugares pueden provocar accidentes y poner en riesgo la seguridad y el bienestar personal y colectivo.",
+              "grado_3": "Colabora en acciones de difusión, al promover una cultura de prevención de accidentes y riesgos para el beneficio común."
+            }
+          }
+        ]
+      }
+    ],
+    "ejes_articuladores": [
+      "Inclusión",
+      "Pensamiento crítico",
+      "Interculturalidad crítica",
+      "Igualdad de género",
+      "Vida saludable",
+      "Apropiación de las culturas a través de la lectura y la escritura",
+      "Artes y experiencias estéticas"
+    ],
+    "metodologias_oficiales": [
+      {
+        "nombre_modalidad": "Proyecto",
+        "siglas": "ABP",
+        "definicion": "La modalidad sugerida para organizar el acompañamiento y la intervención docente con enfoque crítico. Propicia procesos de indagación organizados alrededor de problemáticas y experiencias de la realidad comunitaria.",
+        "fases_momento": [
+          "1. Punto de partida",
+          "2. Planeación",
+          "3. ¡A trabajar!",
+          "4. Comunicamos nuestros logros",
+          "5. Reflexión sobre el aprendizaje"
+        ]
+      },
+      {
+        "nombre_modalidad": "Aprendizaje Basado en Juegos",
+        "siglas": "ABJ",
+        "definicion": "Modalidad que rescata las acciones de formación lúdicas como estrategia para el fomento de capacidades individuales y sociales, enfocada en la convivencia y la resolución pacífica de conflictos.",
+        "fases_momento": [
+          "1. Planteamiento del juego",
+          "2. Desarrollo de las actividades",
+          "3. Compartimos la experiencia",
+          "4. Comunidad de juego"
+        ]
+      },
+      {
+        "nombre_modalidad": "Unidad didáctica",
+        "siglas": "UD",
+        "definicion": "Forma de trabajo que permite organizar los contenidos y promueve procesos de aprendizaje en función de un aspecto o recorte significativo de la realidad sobre el que se decide indagar desde una perspectiva crítica.",
+        "fases_momento": [
+          "1. Lectura de la realidad",
+          "2. Identificación de la trama y complejidad",
+          "3. Planificación y organización del trabajo",
+          "4. Exploración y descubrimiento",
+          "5. Participación activa y horizontal",
+          "6. Valoración de la experiencia"
+        ]
+      },
+      {
+        "nombre_modalidad": "Centros de interés",
+        "siglas": "CI",
+        "definicion": "Forma de trabajo que posibilita la actividad infantil a partir de núcleos de su interés directo (objetos, seres, hechos) para observarlos, asociarlos y expresarlos de forma pedagógica.",
+        "fases_momento": [
+          "1. En contacto con la realidad",
+          "2. Identificación e integración (Asociaciones de utilidad, tiempo, causa-efecto, etc.)",
+          "3. Expresión"
+        ]
+      },
+      {
+        "nombre_modalidad": "Rincones de aprendizaje",
+        "siglas": "RA",
+        "definicion": "Espacios físicos delimitados con materiales específicos para promover el aprendizaje autónomo, la toma de decisiones, la asamblea y la autogestión de las actividades por las niñas y los niños.",
+        "fases_momento": [
+          "1. Saberes previos",
+          "2. Asamblea inicial y planeación",
+          "3. Exploración de los rincones",
+          "4. Compartimos lo aprendido",
+          "5. Reflexión sobre el aprendizaje"
+        ]
+      },
+      {
+        "nombre_modalidad": "Taller crítico",
+        "siglas": "TC",
+        "definicion": "Modalidad de trabajo pedagógico basada en el concepto 'aprender haciendo', centrada en la vivencia, la reflexión y la colaboración mediante un procedimiento de elaboración y producciones.",
+        "fases_momento": [
+          "1. Situación inicial",
+          "2. Organización de las acciones",
+          "3. Puesta en marcha",
+          "4. Valoramos lo aprendido"
+        ]
+      }
+    ]
+  }
+}
