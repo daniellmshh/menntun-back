@@ -160,7 +160,7 @@ export class NemKnowledgeService implements OnModuleInit {
     if (!kb) return [];
 
     const pdaKey = `grado_${gradeOrder}`;
-    const results: { campoFormativo: string; contenido: string; pda: string }[] = [];
+    const results: { campoFormativo: string; nombreCampo: string; contenido: string; pda: string }[] = [];
 
     for (const sel of selecciones) {
       const campo = kb.catalogo_sep_fase2.campos_formativos.find(
@@ -170,7 +170,8 @@ export class NemKnowledgeService implements OnModuleInit {
         const contenido = campo.contenidos.find(ct => ct.id_contenido === sel.contenidoId);
         if (contenido) {
           results.push({
-            campoFormativo: campo.nombre_campo,
+            campoFormativo: sel.campoFormativoId,    // enum e.g. "LENGUAJES"
+            nombreCampo: campo.nombre_campo,          // display "Lenguajes"
             contenido: contenido.nombre_contenido,
             pda: contenido.pda[pdaKey] || contenido.pda["grado_1"] || ""
           });

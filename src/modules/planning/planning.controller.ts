@@ -36,8 +36,8 @@ export class PlanningController {
     @Body() dto: GeneratePlanningDto,
     @CurrentUser() user: RequestUser,
   ) {
-    const { planning, sugerenciaIA } = await this.planningService.generatePlanning(dto, user);
-    return successResponse({ planning, sugerenciaIA });
+    const result = await this.planningService.generatePlanning(dto, user);
+    return successResponse({ planning: result.planning });
   }
 
   @Get("teachers-list")
