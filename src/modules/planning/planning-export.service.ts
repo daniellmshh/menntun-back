@@ -34,7 +34,11 @@ export class PlanningExportService {
 
     const fundamentacion = (planning.fundamentacion as any[]) || [];
     const matrizDidactica = (planning.matrizDidactica as any[]) || [];
-    const ejesArticuladores = planning.ejesArticuladores || [];
+    const formatEje = (eje: string) => {
+      const formatted = eje.replace(/_/g, ' ').toLowerCase();
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    };
+    const ejesArticuladores = (planning.ejesArticuladores || []).map(formatEje);
     
     const html = `
 <!DOCTYPE html>
@@ -68,7 +72,7 @@ export class PlanningExportService {
         page-break-before: always;
       }
       table {
-        page-break-inside: auto;
+        page-break-inside: avoid;
       }
       tr {
         page-break-inside: avoid;
@@ -118,6 +122,8 @@ export class PlanningExportService {
       border-collapse: collapse;
       margin-bottom: 20px;
       font-size: 12px;
+      table-layout: fixed;
+      word-wrap: break-word;
     }
 
     th, td {
@@ -221,6 +227,30 @@ export class PlanningExportService {
     </tbody>
   </table>
 
+  <div class="section-title">Consideraciones Adicionales</div>
+  <table>
+    <tbody>
+      <tr>
+        <th width="30%">Instrumentos de Evaluación</th>
+        <td>
+          <ul>${renderArray(planning.instrumentoEvaluacion || [])}</ul>
+        </td>
+      </tr>
+      <tr>
+        <th>Ajustes Razonables</th>
+        <td>
+          <ul>${renderArray(planning.ajustesRazonables || [])}</ul>
+        </td>
+      </tr>
+      <tr>
+        <th>Actividades PMC</th>
+        <td>
+          <ul>${renderArray(planning.actividadesPmc || [])}</ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
   <div class="section-title">Matriz Didáctica por Momentos</div>
   ${matrizDidactica.map(momento => `
     <table>
@@ -249,30 +279,6 @@ export class PlanningExportService {
       </tbody>
     </table>
   `).join('')}
-
-  <div class="section-title">Consideraciones Adicionales</div>
-  <table>
-    <tbody>
-      <tr>
-        <th width="30%">Instrumentos de Evaluación</th>
-        <td>
-          <ul>${renderArray(planning.instrumentoEvaluacion || [])}</ul>
-        </td>
-      </tr>
-      <tr>
-        <th>Ajustes Razonables</th>
-        <td>
-          <ul>${renderArray(planning.ajustesRazonables || [])}</ul>
-        </td>
-      </tr>
-      <tr>
-        <th>Actividades PMC</th>
-        <td>
-          <ul>${renderArray(planning.actividadesPmc || [])}</ul>
-        </td>
-      </tr>
-    </tbody>
-  </table>
 
 </body>
 </html>
