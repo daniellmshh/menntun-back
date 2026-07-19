@@ -13,6 +13,10 @@ export class CampoSeleccionadoDto {
   @IsString()
   @IsNotEmpty()
   contenidoId: string; // e.g. "L_01"
+
+  @IsString()
+  @IsNotEmpty()
+  pdaLiteral: string; // The literal PDA string chosen by the teacher
 }
 
 export class GeneratePlanningDto {

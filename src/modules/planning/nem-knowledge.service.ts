@@ -3,7 +3,7 @@ import { PlanningModalidad, CampoFormativo, NivelEducativo } from "@prisma/clien
 import * as fs from "fs";
 import * as path from "path";
 
-interface RawPda {
+export interface RawPda {
   grado_1: string;
   grado_2: string;
   grado_3: string;
@@ -136,7 +136,8 @@ export class NemKnowledgeService implements OnModuleInit {
         finalidad: c.finalidad,
         contenidos: c.contenidos.map(ct => ({
           id: ct.id_contenido,
-          nombre: ct.nombre_contenido
+          nombre: ct.nombre_contenido,
+          pda: ct.pda
         }))
       })),
       ejesArticuladores: cat.ejes_articuladores || [],
@@ -154,7 +155,7 @@ export class NemKnowledgeService implements OnModuleInit {
   getContenidosPorSeleccion(
     nivel: NivelEducativo,
     gradeOrder: number,
-    selecciones: { campoFormativoId: string; contenidoId: string }[]
+    selecciones: { campoFormativoId: string; contenidoId: string; pdaLiteral?: string }[]
   ) {
     const kb = this.loadKnowledgeBase(nivel);
     if (!kb) return [];
@@ -173,7 +174,7 @@ export class NemKnowledgeService implements OnModuleInit {
             campoFormativo: sel.campoFormativoId,    // enum e.g. "LENGUAJES"
             nombreCampo: campo.nombre_campo,          // display "Lenguajes"
             contenido: contenido.nombre_contenido,
-            pda: contenido.pda[pdaKey] || contenido.pda["grado_1"] || ""
+            pda: sel.pdaLiteral || contenido.pda[pdaKey] || contenido.pda["grado_1"] || ""
           });
         }
       }
