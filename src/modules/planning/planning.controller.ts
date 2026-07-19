@@ -14,6 +14,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
 import { PlanningGenerationService } from "./planning-generation.service";
 import { NemKnowledgeService } from "./nem-knowledge.service";
+import { PlanningExportService } from "./planning-export.service";
 import { GeneratePlanningDto, UpdatePlanningDto } from "./planning.dto";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
@@ -29,6 +30,7 @@ export class PlanningController {
   constructor(
     private readonly planningService: PlanningGenerationService,
     private readonly nemKnowledgeService: NemKnowledgeService,
+    private readonly planningExportService: PlanningExportService,
   ) {}
 
   @Post("generate")
@@ -91,6 +93,20 @@ export class PlanningController {
   ) {
     const data = await this.planningService.findById(id, user);
     return successResponse(data);
+  }
+
+  @Get(":id/export/html")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER)
+  @ApiOperation({ summary: "Exportar planeación como documento HTML imprimible" })
+  async exportHtml(
+    @Param("id") id: string,
+    @CurrentUser() user: RequestUser,
+    @Res() res: Response,
+  ) {
+    const html = await this.planningExportService.generateHtml(id, user);
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="planeacion_${id}.html"`);
+    res.send(html);
   }
 
   @Patch(":id")
