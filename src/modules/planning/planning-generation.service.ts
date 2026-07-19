@@ -149,12 +149,23 @@ export class PlanningGenerationService {
       throw new InternalServerErrorException(`Modalidad ${dto.modalidad} no encontrada.`);
     }
 
+    // Build authoritative fundamentación — campo + contenido + PDA EXACTOS del JSON curricular
+    // Este objeto es la fuente de verdad que se inyecta al prompt y que luego
+    // se usa para sobrescribir el campo_pda en la respuesta de la IA.
     const fundamentacionStr = contenidosRes.map(
-      (c) => `CAMPO: ${c.campoFormativo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`
+      (c, idx) => `[Selección ${idx + 1}]
+Campo Formativo: "${c.nombreCampo}"
+Contenido: "${c.contenido}"
+PDA (Grado ${order}°, TEXTO OFICIAL SEP — NO PARAFRASEAR): "${c.pda}"`
     ).join("\n\n");
 
-    const systemPrompt = `Eres un asistente pedagógico experto en la Nueva Escuela Mexicana (NEM).
-Tu tarea es generar una planeación didáctica en formato JSON.
+    // Pre-build el campo_pda autoritativo para inyectar en la respuesta de la IA
+    const autoritativoCampoPda = contenidosRes.map(
+      (c) => `CAMPO: ${c.nombreCampo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`
+    ).join("\n\n");
+
+    const systemPrompt = `Eres un Diseñador Curricular de Élite especializado en educación preescolar (Fase 2) bajo el enfoque de la Nueva Escuela Mexicana (NEM).
+Tu ÚNICA tarea es generar las ACTIVIDADES DIDÁCTICAS para una planeación. Los datos curriculares ya están definidos y son INAMOVIBLES.
 
 Ficha de Identificación:
 - Nivel: ${level}, Grado: ${order}°
@@ -170,39 +181,43 @@ Ficha de Identificación:
 Fases de la Metodología Oficial:
 ${modalidadCtx.fases.map((f, i) => `${i + 1}. ${f}`).join('\n')}
 
-Fundamentación Curricular Seleccionada (COPIAR EXACTAMENTE):
+═══════════════════════════════════════════════════════════
+FUNDAMENTACIÓN CURRICULAR — FUENTE DE VERDAD OFICIAL SEP:
+(Extraída literalmente del Programa Sintético NEM. Prohibido parafrasear, modificar o inventar.)
+═══════════════════════════════════════════════════════════
 ${fundamentacionStr}
+═══════════════════════════════════════════════════════════
 
 INSTRUCCIONES CRÍTICAS (DE CUMPLIMIENTO ESTRICTO):
-1. INTEGRACIÓN CURRICULAR SIMULTÁNEA: NO aísles los campos formativos. La NEM exige un enfoque globalizador e interdisciplinario. En cada Momento de la metodología, DEBES cruzar y entrelazar actividades que aborden MÚLTIPLES Campos Formativos y PDAs al mismo tiempo, indicándolo en la columna 'campo_pda'.
-2. SECUENCIACIÓN DIDÁCTICA (INICIO, DESARROLLO Y CIERRE): Las actividades NO deben ser descripciones abstractas o directas. Para CADA MOMENTO, desglosa la secuencia en tres fases claras usando viñetas ('- '):
-   - Inicio: Dinámica lúdica para captar la atención o introducir el reto.
-   - Desarrollo: La acción de exploración, juego o experimentación.
-   - Cierre: Puesta en común, reflexión y las PREGUNTAS MEDIADORAS específicas (entre comillas) que la docente formulará para detonar el pensamiento crítico.
-3. INTEGRACIÓN DE APOYOS (PMC Y AJUSTES): Integra el Programa de Mejora Continua (PMC) y los Ajustes Razonables EXPLÍCITAMENTE dentro de la narrativa de las actividades (ej. "Entregar el diploma...", "Usar pictogramas...").
-4. EVALUACIÓN FORMATIVA (CONDUCTAS OBSERVABLES): No te limites a nombrar el instrumento. Debes redactar INDICADORES DE LOGRO ESPECÍFICOS y manifestaciones conductuales que la docente registrará (ej. "Rúbrica: Observar si el alumno dialoga asertivamente para resolver un conflicto en equipos o si requiere mediación").
-5. El campo 'campo_pda' DEBE referenciar la fundamentación exacta provista, SIN PARAFRASEAR los contenidos ni PDAs de la SEP.
-6. La columna 'organizacion' debe ser explícita (ej. "Grupo completo", "Pequeños equipos", "Individual").
-7. Para 'recursos': Enumera de manera sumamente específica los materiales requeridos (ej. ingredientes, contenedores).
+1. INTEGRACIÓN CURRICULAR SIMULTÁNEA: Diseña actividades que articulen TODOS los Campos y PDAs listados arriba de forma simultánea e interdisciplinaria en cada Momento.
+2. SECUENCIACIÓN DIDÁCTICA (INICIO, DESARROLLO Y CIERRE): Para CADA MOMENTO desglosa en tres fases con viñetas ('-'):
+   - Inicio: Dinámica lúdica o provocación para captar la atención.
+   - Desarrollo: Exploración activa, juego, experimentación con materiales concretos.
+   - Cierre: Puesta en común y PREGUNTAS MEDIADORAS específicas (literalmente entre comillas) que la docente hará para detonar el pensamiento crítico.
+3. INTEGRACIÓN DE APOYOS: Inyecta PMC y Ajustes Razonables de forma explícita en la narrativa de las actividades.
+4. EVALUACIÓN FORMATIVA: Redacta INDICADORES DE LOGRO Y MANIFESTACIONES CONDUCTUALES observables (ej. "Rúbrica: Observar si el alumno dialoga asertivamente...").
+5. RECURSOS: Lista materiales físicos específicos (ingredientes, contenedores, cantidades si aplica).
+6. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' escribe ÚNICAMENTE una etiqueta de referencia en el formato exacto "[Selección 1]" o "[Selección 1][Selección 2]" según los campos que se aborden en esa fila. El sistema backend reemplazará estas etiquetas con el texto oficial de la SEP automáticamente. NUNCA escribas el texto del contenido ni del PDA tú mismo.
 
 FORMATO JSON ESPERADO:
 {
   "title": "Título creativo del proyecto",
   "matrizDidactica": [
     {
-      "momento": "Nombre de la fase (ej: 1. Punto de partida)",
+      "momento": "1. Nombre de la fase",
       "filas": [
         {
-          "actividades": "- Actividad paso 1...\\n- Actividad paso 2 con preguntas reflexivas...\\n- Actividad paso 3 (incluyendo PMC o ajuste razonable si aplica)...",
-          "campo_pda": "CAMPO: ...\\nCONTENIDO: ...\\nPDA: ...\\n\\nCAMPO: ... (si se abordan varios a la vez)",
+          "actividades": "- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Reflexión: '¿...'",
+          "campo_pda": "[Selección 1][Selección 2]",
           "organizacion": "Grupo completo",
           "recursos": "Material 1, Material 2...",
-          "evaluacion": "Indicadores observables..."
+          "evaluacion": "Rúbrica: Observar si el alumno..."
         }
       ]
     }
   ]
 }`;
+
 
     const generationCompletion = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -224,6 +239,19 @@ FORMATO JSON ESPERADO:
       parsed = JSON.parse(jsonText);
     } catch (e) {
       throw new InternalServerErrorException("Error al parsear el JSON de la IA.");
+    }
+
+    // ─── POST-PROCESAMIENTO: Sobrescribir campo_pda con datos OFICIALES de la SEP ───
+    // La IA puede haber puesto etiquetas "[Selección N]" o texto inventado.
+    // Reemplazamos el campo_pda de CADA FILA con el texto oficial del currículo NEM.
+    if (parsed.matrizDidactica && Array.isArray(parsed.matrizDidactica)) {
+      for (const momento of parsed.matrizDidactica) {
+        if (Array.isArray(momento.filas)) {
+          for (const fila of momento.filas) {
+            fila.campo_pda = autoritativoCampoPda;
+          }
+        }
+      }
     }
 
     // Construct Legacy Fields
@@ -387,11 +415,18 @@ FORMATO JSON ESPERADO:
       }
 
       const fundamentacionStr = contenidosRes.map(
-        (c) => `CAMPO: ${c.campoFormativo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`
+        (c, idx) => `[Selección ${idx + 1}]
+Campo Formativo: "${c.nombreCampo}"
+Contenido: "${c.contenido}"
+PDA (Grado ${order}°, TEXTO OFICIAL SEP — NO PARAFRASEAR): "${c.pda}"`
       ).join("\n\n");
 
-      const systemPrompt = `Eres un asistente pedagógico experto en la Nueva Escuela Mexicana (NEM).
-Tu tarea es generar una planeación didáctica en formato JSON.
+      const autoritativoCampoPda = contenidosRes.map(
+        (c) => `CAMPO: ${c.nombreCampo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`
+      ).join("\n\n");
+
+      const systemPrompt = `Eres un Diseñador Curricular de Élite especializado en educación preescolar (Fase 2) bajo el enfoque de la Nueva Escuela Mexicana (NEM).
+Tu Única tarea es generar las ACTIVIDADES DIDÁCTICAS para una planeación. Los datos curriculares ya están definidos y son INAMOVIBLES.
 
 Ficha de Identificación:
 - Nivel: ${level}, Grado: ${order}°
@@ -407,36 +442,43 @@ Ficha de Identificación:
 Fases de la Metodología Oficial:
 ${modalidadCtx.fases.map((f, i) => `${i + 1}. ${f}`).join('\n')}
 
-Fundamentación Curricular Seleccionada (COPIAR EXACTAMENTE):
+═══════════════════════════════════════════════════════
+FUNDAMENTACIÓN CURRICULAR — FUENTE DE VERDAD OFICIAL SEP:
+(Extraída literalmente del Programa Sintético NEM. Prohibido parafrasear, modificar o inventar.)
+═══════════════════════════════════════════════════════
 ${fundamentacionStr}
+═══════════════════════════════════════════════════════
 
 INSTRUCCIONES CRÍTICAS (DE CUMPLIMIENTO ESTRICTO):
-1. INTEGRACIÓN CURRICULAR SIMULTÁNEA: NO aísles los campos formativos. La NEM exige un enfoque globalizador e interdisciplinario. En cada Momento de la metodología, DEBES cruzar y entrelazar actividades que aborden MÚLTIPLES Campos Formativos y PDAs al mismo tiempo, indicándolo en la columna 'campo_pda'.
-2. SECUENCIACIÓN DIDÁCTICA (INICIO, DESARROLLO Y CIERRE): Las actividades NO deben ser descripciones abstractas o directas. Para CADA MOMENTO, desglosa la secuencia en tres fases claras usando viñetas ('- '):\n   - Inicio: Dinámica lúdica para captar la atención o introducir el reto.\n   - Desarrollo: La acción de exploración, juego o experimentación.\n   - Cierre: Puesta en común, reflexión y las PREGUNTAS MEDIADORAS específicas (entre comillas) que la docente formulará para detonar el pensamiento crítico.
-3. INTEGRACIÓN DE APOYOS (PMC Y AJUSTES): Integra el Programa de Mejora Continua (PMC) y los Ajustes Razonables EXPLÍCITAMENTE dentro de la narrativa de las actividades (ej. "Entregar el diploma...", "Usar pictogramas...").
-4. EVALUACIÓN FORMATIVA (CONDUCTAS OBSERVABLES): No te limites a nombrar el instrumento. Debes redactar INDICADORES DE LOGRO ESPECÍFICOS y manifestaciones conductuales que la docente registrará (ej. "Rúbrica: Observar si el alumno dialoga asertivamente para resolver un conflicto en equipos o si requiere mediación").
-5. El campo 'campo_pda' DEBE referenciar la fundamentación exacta provista, SIN PARAFRASEAR los contenidos ni PDAs de la SEP.
-6. La columna 'organizacion' debe ser explícita (ej. "Grupo completo", "Pequeños equipos", "Individual").
-7. Para 'recursos': Enumera de manera sumamente específica los materiales requeridos (ej. ingredientes, contenedores).
+1. INTEGRACIÓN CURRICULAR SIMULTÁNEA: Diseña actividades que articulen TODOS los Campos y PDAs listados arriba de forma simultánea e interdisciplinaria en cada Momento.
+2. SECUENCIACIÓN DIDÁCTICA (INICIO, DESARROLLO Y CIERRE): Para CADA MOMENTO desglosa en tres fases con viñetas ('-'):
+   - Inicio: Dinámica lúdica o provocación para captar la atención.
+   - Desarrollo: Exploración activa, juego, experimentación con materiales concretos.
+   - Cierre: Puesta en común y PREGUNTAS MEDIADORAS específicas (literalmente entre comillas) que la docente hará para detonar el pensamiento crítico.
+3. INTEGRACIÓN DE APOYOS: Inyecta PMC y Ajustes Razonables de forma explícita en la narrativa de las actividades.
+4. EVALUACIÓN FORMATIVA: Redacta INDICADORES DE LOGRO Y MANIFESTACIONES CONDUCTUALES observables (ej. "Rúbrica: Observar si el alumno dialoga asertivamente...").
+5. RECURSOS: Lista materiales físicos específicos (ingredientes, contenedores, cantidades si aplica).
+6. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' escribe ÚNICAMENTE una etiqueta de referencia en formato "[Selección 1]" o "[Selección 1][Selección 2]". El backend inyectará el texto oficial de la SEP. NUNCA escribas el contenido ni el PDA tú mismo.
 
 FORMATO JSON ESPERADO:
 {
   "title": "Título creativo del proyecto",
   "matrizDidactica": [
     {
-      "momento": "Nombre de la fase (ej: 1. Punto de partida)",
+      "momento": "1. Nombre de la fase",
       "filas": [
         {
-          "actividades": "- Actividad paso 1...\\n- Actividad paso 2 con preguntas reflexivas...\\n- Actividad paso 3 (incluyendo PMC o ajuste razonable si aplica)...",
-          "campo_pda": "CAMPO: ...\\nCONTENIDO: ...\\nPDA: ...\\n\\nCAMPO: ... (si se abordan varios a la vez)",
+          "actividades": "- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Preguntas: '¿...'",
+          "campo_pda": "[Selección 1][Selección 2]",
           "organizacion": "Grupo completo",
           "recursos": "Material 1, Material 2...",
-          "evaluacion": "Indicadores observables..."
+          "evaluacion": "Rúbrica: Observar si el alumno..."
         }
       ]
     }
   ]
 }`;
+
 
       // ── Notificar inicio del stream ────────────────────────────────────────
       sendEvent({ type: 'status', message: 'Iniciando generación con IA...' });
@@ -470,6 +512,17 @@ FORMATO JSON ESPERADO:
         parsed = JSON.parse(fullContent);
       } catch {
         throw new InternalServerErrorException("Error al parsear el JSON de la IA.");
+      }
+
+      // ─── POST-PROCESAMIENTO: Sobrescribir campo_pda con datos OFICIALES de la SEP ───
+      if (parsed.matrizDidactica && Array.isArray(parsed.matrizDidactica)) {
+        for (const momento of parsed.matrizDidactica) {
+          if (Array.isArray(momento.filas)) {
+            for (const fila of momento.filas) {
+              fila.campo_pda = autoritativoCampoPda;
+            }
+          }
+        }
       }
 
       const contenidosLegacy = contenidosRes.map(c => c.contenido).join(" | ");
