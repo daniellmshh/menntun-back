@@ -6,8 +6,10 @@ import {
   Param,
   Patch,
   Post,
+  Res,
   UseGuards,
 } from "@nestjs/common";
+import { Response } from "express";
 import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
 import { PlanningGenerationService } from "./planning-generation.service";
@@ -38,6 +40,22 @@ export class PlanningController {
   ) {
     const result = await this.planningService.generatePlanning(dto, user);
     return successResponse({ planning: result.planning });
+  }
+
+  @Post("generate/stream")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER)
+  @ApiOperation({ summary: "Generar una planeación con SSE streaming en tiempo real" })
+  async generateStream(
+    @Body() dto: GeneratePlanningDto,
+    @CurrentUser() user: RequestUser,
+    @Res() res: Response,
+  ) {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+    await this.planningService.generatePlanningStream(dto, user, res);
   }
 
   @Get("teachers-list")
