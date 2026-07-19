@@ -280,6 +280,13 @@ export class PlanningExportService {
     </table>
   `).join('')}
 
+  <script>
+    window.onload = function() {
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    };
+  </script>
 </body>
 </html>
     `;
