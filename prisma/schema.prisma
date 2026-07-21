@@ -79,6 +79,11 @@ enum NivelEducativo {
   SECUNDARIA
 }
 
+enum SchoolType {
+  SCHOOL
+  INDEPENDENT
+}
+
 enum PlanningModalidad {
   PROYECTOS
   ABJ
@@ -139,9 +144,10 @@ model School {
   phone     String?
   email     String?
   logoUrl   String?  @map("logo_url")
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  active    Boolean    @default(true)
+  type      SchoolType @default(SCHOOL)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
 
   users                  User[]
   schoolModules          SchoolModule[]
