@@ -16,12 +16,14 @@ import { CreateStudentDto, UpdateStudentDto } from "./students.dto";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { RequireModule } from "../../common/decorators/require-module.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { RequestUser, successResponse } from "../../common/types";
 
 @ApiTags("Students")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
+@RequireModule("students")
 @Controller("students")
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}

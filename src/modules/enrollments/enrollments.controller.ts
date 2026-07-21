@@ -14,12 +14,14 @@ import { CreateSolicitudDto, ChangeDocumentoStatusDto, AprobarSolicitudDto } fro
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { RequireModule } from "../../common/decorators/require-module.decorator";
 import { UserRole } from "@prisma/client";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { RequestUser } from "../../common/types";
 
 @Controller("enrollments")
 @UseGuards(JwtAuthGuard, RolesGuard)
+@RequireModule("enrollments")
 export class EnrollmentsController {
   constructor(private readonly enrollmentsService: EnrollmentsService) {}
 

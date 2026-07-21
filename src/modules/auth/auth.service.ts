@@ -59,7 +59,15 @@ export class AuthService {
             parentProfile: true,
           },
         });
-        return user;
+        const school = await tx.school.findUnique({
+          where: { id: user.schoolId },
+          select: { type: true },
+        });
+
+        return {
+          ...user,
+          isIndependent: school?.type === 'INDEPENDENT',
+        };
       }
 
       user = await tx.user.create({
@@ -89,7 +97,7 @@ export class AuthService {
         });
       }
 
-      return tx.user.findUnique({
+      const createdUser = await tx.user.findUnique({
         where: { id: user.id },
         include: {
           teacherProfile: true,
@@ -97,6 +105,16 @@ export class AuthService {
           parentProfile: true,
         },
       });
+
+      const school = await tx.school.findUnique({
+        where: { id: dto.schoolId },
+        select: { type: true },
+      });
+
+      return {
+        ...createdUser,
+        isIndependent: school?.type === 'INDEPENDENT',
+      };
     });
   }
 

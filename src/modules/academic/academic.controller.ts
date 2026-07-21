@@ -30,11 +30,13 @@ import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { RequireModule } from "../../common/decorators/require-module.decorator";
 import { RequestUser, successResponse } from "../../common/types";
 
 @ApiTags("Academic")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
+@RequireModule("academic")
 @Controller("academic")
 export class AcademicController {
   constructor(private readonly academicService: AcademicService) {}
