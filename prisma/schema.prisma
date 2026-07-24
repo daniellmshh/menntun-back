@@ -79,6 +79,11 @@ enum NivelEducativo {
   SECUNDARIA
 }
 
+enum SchoolType {
+  SCHOOL
+  INDEPENDENT
+}
+
 enum PlanningModalidad {
   PROYECTOS
   ABJ
@@ -139,9 +144,10 @@ model School {
   phone     String?
   email     String?
   logoUrl   String?  @map("logo_url")
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  active    Boolean    @default(true)
+  type      SchoolType @default(SCHOOL)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
 
   users                  User[]
   schoolModules          SchoolModule[]
@@ -527,6 +533,9 @@ model Planning {
   status               PlanningStatus    @default(DRAFT)
   // New Sara format fields
   periodoProyecto      String?           @map("periodo_proyecto")
+  startDate            DateTime?         @map("start_date") @db.Date
+  endDate              DateTime?         @map("end_date") @db.Date
+  activitiesPerDay     Int?              @default(1) @map("activities_per_day")
   problematica         String?
   proposito            String?
   instrumentoEvaluacion String[]         @default([]) @map("instrumento_evaluacion")

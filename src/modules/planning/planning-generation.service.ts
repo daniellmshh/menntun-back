@@ -89,19 +89,28 @@ export class PlanningGenerationService {
       currentUser.role === UserRole.SCHOOL_ADMIN
     ) {
       if (!dto.targetTeacherProfileId) {
-        throw new BadRequestException("Debes especificar targetTeacherProfileId al generar como administrador");
+        // Fallback: Si el admin también es un maestro (ej. maestro independiente)
+        const selfTeacherProfile = await this.prisma.teacherProfile.findUnique({
+          where: { userId: currentUser.id },
+        });
+        if (selfTeacherProfile) {
+          resolvedTeacherProfileId = selfTeacherProfile.id;
+        } else {
+          throw new BadRequestException("Debes especificar targetTeacherProfileId al generar como administrador");
+        }
+      } else {
+        const targetTeacher = await this.prisma.teacherProfile.findUnique({
+          where: { id: dto.targetTeacherProfileId },
+          include: { user: true },
+        });
+        if (!targetTeacher) {
+          throw new NotFoundException("El perfil de profesor especificado no existe.");
+        }
+        if (targetTeacher.user.schoolId !== currentUser.schoolId) {
+          throw new ForbiddenException("No puedes generar planeaciones para un profesor de otra escuela.");
+        }
+        resolvedTeacherProfileId = targetTeacher.id;
       }
-      const targetTeacher = await this.prisma.teacherProfile.findUnique({
-        where: { id: dto.targetTeacherProfileId },
-        include: { user: true },
-      });
-      if (!targetTeacher) {
-        throw new NotFoundException("El perfil de profesor especificado no existe.");
-      }
-      if (targetTeacher.user.schoolId !== currentUser.schoolId) {
-        throw new ForbiddenException("No puedes generar planeaciones para un profesor de otra escuela.");
-      }
-      resolvedTeacherProfileId = targetTeacher.id;
     } else {
       throw new ForbiddenException("No tiene permisos para generar planeaciones.");
     }
@@ -164,12 +173,27 @@ PDA (Grado ${order}°, TEXTO OFICIAL SEP — NO PARAFRASEAR): "${c.pda}"`
       (c) => `CAMPO: ${c.nombreCampo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`
     ).join("\n\n");
 
+    // Calculate weekdays and total activities
+    const sDate = new Date(dto.startDate + "T12:00:00Z");
+    const eDate = new Date(dto.endDate + "T12:00:00Z");
+    let totalWorkDays = 0;
+    const workingDates: string[] = [];
+    for (let d = new Date(sDate); d <= eDate; d.setDate(d.getDate() + 1)) {
+      if (d.getDay() !== 0 && d.getDay() !== 6) {
+        totalWorkDays++;
+        workingDates.push(`Día ${totalWorkDays} (${d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })})`);
+      }
+    }
+    const totalActivities = totalWorkDays * dto.activitiesPerDay;
+    const scheduleStr = workingDates.join(', ');
+
     const systemPrompt = `Eres un Diseñador Curricular de Élite especializado en educación preescolar (Fase 2) bajo el enfoque de la Nueva Escuela Mexicana (NEM).
 Tu ÚNICA tarea es generar las ACTIVIDADES DIDÁCTICAS para una planeación. Los datos curriculares ya están definidos y son INAMOVIBLES.
 
 Ficha de Identificación:
 - Nivel: ${level}, Grado: ${order}°
-- Periodo: ${dto.periodoProyecto || 'Por definir'}
+- Periodo: Del ${dto.startDate} al ${dto.endDate}
+- Actividades por día: ${dto.activitiesPerDay}
 - Problemática: ${dto.problematica}
 - Propósito: ${dto.proposito}
 - Metodología: ${modalidadCtx.nombre} (${modalidadCtx.siglas})
@@ -189,15 +213,17 @@ ${fundamentacionStr}
 ═══════════════════════════════════════════════════════════
 
 INSTRUCCIONES CRÍTICAS (DE CUMPLIMIENTO ESTRICTO):
-1. INTEGRACIÓN CURRICULAR SIMULTÁNEA: Diseña actividades que articulen TODOS los Campos y PDAs listados arriba de forma simultánea e interdisciplinaria en cada Momento.
-2. SECUENCIACIÓN DIDÁCTICA (INICIO, DESARROLLO Y CIERRE): Para CADA MOMENTO desglosa en tres fases con viñetas ('-'):
+1. INTEGRACIÓN CURRICULAR: Diseña actividades que se apoyen en los Campos y PDAs listados arriba, pero asignando de forma específica a CADA ACTIVIDAD ÚNICAMENTE los Campos y PDAs que realmente se estén abordando en ella (no tienes que abordarlos todos simultáneamente en cada actividad, sino distribuirlos de forma lógica a lo largo del proyecto).
+2. SECUENCIACIÓN DIDÁCTICA (INICIO, DESARROLLO Y CIERRE): Para CADA ACTIVIDAD desglosa obligatoriamente en tres momentos con viñetas ('-'):
    - Inicio: Dinámica lúdica o provocación para captar la atención.
    - Desarrollo: Exploración activa, juego, experimentación con materiales concretos.
    - Cierre: Puesta en común y PREGUNTAS MEDIADORAS específicas (literalmente entre comillas) que la docente hará para detonar el pensamiento crítico.
-3. INTEGRACIÓN DE APOYOS: Inyecta PMC y Ajustes Razonables de forma explícita en la narrativa de las actividades.
-4. EVALUACIÓN FORMATIVA: Redacta INDICADORES DE LOGRO Y MANIFESTACIONES CONDUCTUALES observables (ej. "Rúbrica: Observar si el alumno dialoga asertivamente...").
-5. RECURSOS: Lista materiales físicos específicos (ingredientes, contenedores, cantidades si aplica).
-6. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' escribe ÚNICAMENTE una etiqueta de referencia en el formato exacto "[Selección 1]" o "[Selección 1][Selección 2]" según los campos que se aborden en esa fila. El sistema backend reemplazará estas etiquetas con el texto oficial de la SEP automáticamente. NUNCA escribas el texto del contenido ni del PDA tú mismo.
+3. DENSIDAD DE ACTIVIDADES (CRÍTICO): El proyecto abarca ${totalWorkDays} días hábiles (del ${dto.startDate} al ${dto.endDate}). Los días son: ${scheduleStr}. Tienes que generar EXACTAMENTE un TOTAL de ${totalActivities} actividades en toda la planeación (${dto.activitiesPerDay} por cada día hábil). Es REQUISITO INDISPENSABLE que la suma total sea exactamente ${totalActivities}. En la redacción de cada actividad, DEBES INCLUIR COMO TÍTULO EL DÍA Y LA FECHA EXACTA, por ejemplo: "**Día 1 (23/07/2026) - Actividad 1**".
+4. INTEGRACIÓN DE APOYOS: Inyecta PMC y Ajustes Razonables de forma explícita en la narrativa de las actividades.
+5. EVALUACIÓN FORMATIVA: Redacta INDICADORES DE LOGRO Y MANIFESTACIONES CONDUCTUALES observables (ej. "Rúbrica: Observar si el alumno dialoga asertivamente...").
+6. RECURSOS: Lista materiales físicos específicos (ingredientes, contenedores, cantidades si aplica).
+7. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' de cada actividad escribe ÚNICAMENTE la etiqueta de referencia (ej. "[Selección 1]") que corresponda específicamente a esa actividad. El sistema backend reemplazará esta etiqueta con el texto oficial. NUNCA escribas el texto del contenido ni del PDA tú mismo. NUNCA combines múltiples selecciones en una misma actividad.
+8. AJUSTES Y PMC: Si el texto libre proporcionado en 'Ajustes Razonables' o 'Actividades PMC' carece de sentido pedagógico, está vacío o es incongruente, ignóralo y propón tú mismo la opción más adecuada para el contexto de la actividad.
 
 FORMATO JSON ESPERADO:
 {
@@ -207,8 +233,8 @@ FORMATO JSON ESPERADO:
       "momento": "1. Nombre de la fase",
       "filas": [
         {
-          "actividades": "- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Reflexión: '¿...'",
-          "campo_pda": "[Selección 1][Selección 2]",
+          "actividades": "**Día 1 (23/07/2026) - Actividad 1**\\n- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Reflexión: '¿...'\\n\\n**Día 1 (23/07/2026) - Actividad 2**\\n- [Inicio]...\\n- [Desarrollo]...\\n- [Cierre]...",
+          "campo_pda": "[Selección 1]",
           "organizacion": "Grupo completo",
           "recursos": "Material 1, Material 2...",
           "evaluacion": "Rúbrica: Observar si el alumno..."
@@ -242,13 +268,22 @@ FORMATO JSON ESPERADO:
     }
 
     // ─── POST-PROCESAMIENTO: Sobrescribir campo_pda con datos OFICIALES de la SEP ───
-    // La IA puede haber puesto etiquetas "[Selección N]" o texto inventado.
-    // Reemplazamos el campo_pda de CADA FILA con el texto oficial del currículo NEM.
+    // Reemplazamos las etiquetas "[Selección N]" con el texto oficial del currículo NEM
+    const autoritativoMap: Record<string, string> = {};
+    contenidosRes.forEach((c, idx) => {
+      autoritativoMap[`[Selección ${idx + 1}]`] = `CAMPO: ${c.nombreCampo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`;
+    });
+
     if (parsed.matrizDidactica && Array.isArray(parsed.matrizDidactica)) {
       for (const momento of parsed.matrizDidactica) {
         if (Array.isArray(momento.filas)) {
           for (const fila of momento.filas) {
-            fila.campo_pda = autoritativoCampoPda;
+            const matches = (fila.campo_pda || "").match(/\[Selección \d+\]/g);
+            if (matches && matches.length > 0) {
+              fila.campo_pda = matches.map((tag: string) => autoritativoMap[tag] || "").filter(Boolean).join('\n\n');
+            } else {
+              fila.campo_pda = autoritativoCampoPda; // fallback
+            }
           }
         }
       }
@@ -310,6 +345,9 @@ FORMATO JSON ESPERADO:
         status: PlanningStatus.DRAFT,
         // New SARA Fields
         periodoProyecto: dto.periodoProyecto,
+        startDate: dto.startDate ? new Date(dto.startDate) : null,
+        endDate: dto.endDate ? new Date(dto.endDate) : null,
+        activitiesPerDay: dto.activitiesPerDay,
         problematica: dto.problematica,
         proposito: dto.proposito,
         instrumentoEvaluacion: dto.instrumentoEvaluacion || [],
@@ -354,19 +392,28 @@ FORMATO JSON ESPERADO:
         currentUser.role === UserRole.SCHOOL_ADMIN
       ) {
         if (!dto.targetTeacherProfileId) {
-          throw new BadRequestException("Debes especificar targetTeacherProfileId al generar como administrador");
+          // Fallback: Si el admin también es un maestro (ej. maestro independiente)
+          const selfTeacherProfile = await this.prisma.teacherProfile.findUnique({
+            where: { userId: currentUser.id },
+          });
+          if (selfTeacherProfile) {
+            resolvedTeacherProfileId = selfTeacherProfile.id;
+          } else {
+            throw new BadRequestException("Debes especificar targetTeacherProfileId al generar como administrador");
+          }
+        } else {
+          const targetTeacher = await this.prisma.teacherProfile.findUnique({
+            where: { id: dto.targetTeacherProfileId },
+            include: { user: true },
+          });
+          if (!targetTeacher) {
+            throw new NotFoundException("El perfil de profesor especificado no existe.");
+          }
+          if (targetTeacher.user.schoolId !== currentUser.schoolId) {
+            throw new ForbiddenException("No puedes generar planeaciones para un profesor de otra escuela.");
+          }
+          resolvedTeacherProfileId = targetTeacher.id;
         }
-        const targetTeacher = await this.prisma.teacherProfile.findUnique({
-          where: { id: dto.targetTeacherProfileId },
-          include: { user: true },
-        });
-        if (!targetTeacher) {
-          throw new NotFoundException("El perfil de profesor especificado no existe.");
-        }
-        if (targetTeacher.user.schoolId !== currentUser.schoolId) {
-          throw new ForbiddenException("No puedes generar planeaciones para un profesor de otra escuela.");
-        }
-        resolvedTeacherProfileId = targetTeacher.id;
       } else {
         throw new ForbiddenException("No tiene permisos para generar planeaciones.");
       }
@@ -425,12 +472,27 @@ PDA (Grado ${order}°, TEXTO OFICIAL SEP — NO PARAFRASEAR): "${c.pda}"`
         (c) => `CAMPO: ${c.nombreCampo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`
       ).join("\n\n");
 
+      // Calculate weekdays and total activities
+      const sDate = new Date(dto.startDate + "T12:00:00Z");
+      const eDate = new Date(dto.endDate + "T12:00:00Z");
+      let totalWorkDays = 0;
+      const workingDates: string[] = [];
+      for (let d = new Date(sDate); d <= eDate; d.setDate(d.getDate() + 1)) {
+        if (d.getDay() !== 0 && d.getDay() !== 6) {
+          totalWorkDays++;
+          workingDates.push(`Día ${totalWorkDays} (${d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })})`);
+        }
+      }
+      const totalActivities = totalWorkDays * dto.activitiesPerDay;
+      const scheduleStr = workingDates.join(', ');
+
       const systemPrompt = `Eres un Diseñador Curricular de Élite especializado en educación preescolar (Fase 2) bajo el enfoque de la Nueva Escuela Mexicana (NEM).
 Tu Única tarea es generar las ACTIVIDADES DIDÁCTICAS para una planeación. Los datos curriculares ya están definidos y son INAMOVIBLES.
 
 Ficha de Identificación:
 - Nivel: ${level}, Grado: ${order}°
-- Periodo: ${dto.periodoProyecto || 'Por definir'}
+- Periodo: Del ${dto.startDate} al ${dto.endDate}
+- Actividades por día: ${dto.activitiesPerDay}
 - Problemática: ${dto.problematica}
 - Propósito: ${dto.proposito}
 - Metodología: ${modalidadCtx.nombre} (${modalidadCtx.siglas})
@@ -450,15 +512,17 @@ ${fundamentacionStr}
 ═══════════════════════════════════════════════════════
 
 INSTRUCCIONES CRÍTICAS (DE CUMPLIMIENTO ESTRICTO):
-1. INTEGRACIÓN CURRICULAR SIMULTÁNEA: Diseña actividades que articulen TODOS los Campos y PDAs listados arriba de forma simultánea e interdisciplinaria en cada Momento.
-2. SECUENCIACIÓN DIDÁCTICA (INICIO, DESARROLLO Y CIERRE): Para CADA MOMENTO desglosa en tres fases con viñetas ('-'):
+1. INTEGRACIÓN CURRICULAR: Diseña actividades que se apoyen en los Campos y PDAs listados arriba, pero asignando de forma específica a CADA ACTIVIDAD ÚNICAMENTE los Campos y PDAs que realmente se estén abordando en ella (no tienes que abordarlos todos simultáneamente en cada actividad, sino distribuirlos de forma lógica a lo largo del proyecto).
+2. SECUENCIACIÓN DIDÁCTICA (INICIO, DESARROLLO Y CIERRE): Para CADA ACTIVIDAD desglosa obligatoriamente en tres momentos con viñetas ('-'):
    - Inicio: Dinámica lúdica o provocación para captar la atención.
    - Desarrollo: Exploración activa, juego, experimentación con materiales concretos.
    - Cierre: Puesta en común y PREGUNTAS MEDIADORAS específicas (literalmente entre comillas) que la docente hará para detonar el pensamiento crítico.
-3. INTEGRACIÓN DE APOYOS: Inyecta PMC y Ajustes Razonables de forma explícita en la narrativa de las actividades.
-4. EVALUACIÓN FORMATIVA: Redacta INDICADORES DE LOGRO Y MANIFESTACIONES CONDUCTUALES observables (ej. "Rúbrica: Observar si el alumno dialoga asertivamente...").
-5. RECURSOS: Lista materiales físicos específicos (ingredientes, contenedores, cantidades si aplica).
-6. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' escribe ÚNICAMENTE una etiqueta de referencia en formato "[Selección 1]" o "[Selección 1][Selección 2]". El backend inyectará el texto oficial de la SEP. NUNCA escribas el contenido ni el PDA tú mismo.
+3. DENSIDAD DE ACTIVIDADES (CRÍTICO): El proyecto abarca ${totalWorkDays} días hábiles (del ${dto.startDate} al ${dto.endDate}). Los días son: ${scheduleStr}. Tienes que generar EXACTAMENTE un TOTAL de ${totalActivities} actividades en toda la planeación (${dto.activitiesPerDay} por cada día hábil). Es REQUISITO INDISPENSABLE que la suma total sea exactamente ${totalActivities}. En la redacción de cada actividad, DEBES INCLUIR COMO TÍTULO EL DÍA Y LA FECHA EXACTA, por ejemplo: "**Día 1 (23/07/2026) - Actividad 1**".
+4. INTEGRACIÓN DE APOYOS: Inyecta PMC y Ajustes Razonables de forma explícita en la narrativa de las actividades.
+5. EVALUACIÓN FORMATIVA: Redacta INDICADORES DE LOGRO Y MANIFESTACIONES CONDUCTUALES observables (ej. "Rúbrica: Observar si el alumno dialoga asertivamente...").
+6. RECURSOS: Lista materiales físicos específicos (ingredientes, contenedores, cantidades si aplica).
+7. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' de cada actividad escribe ÚNICAMENTE la etiqueta de referencia (ej. "[Selección 1]") que corresponda específicamente a esa actividad. El sistema backend reemplazará esta etiqueta con el texto oficial. NUNCA escribas el texto del contenido ni del PDA tú mismo. NUNCA combines múltiples selecciones en una misma actividad.
+8. AJUSTES Y PMC: Si el texto libre proporcionado en 'Ajustes Razonables' o 'Actividades PMC' carece de sentido pedagógico, está vacío o es incongruente, ignóralo y propón tú mismo la opción más adecuada para el contexto de la actividad.
 
 FORMATO JSON ESPERADO:
 {
@@ -468,8 +532,8 @@ FORMATO JSON ESPERADO:
       "momento": "1. Nombre de la fase",
       "filas": [
         {
-          "actividades": "- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Preguntas: '¿...'",
-          "campo_pda": "[Selección 1][Selección 2]",
+          "actividades": "**Día 1 (23/07/2026) - Actividad 1**\\n- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Reflexión: '¿...'\\n\\n**Día 1 (23/07/2026) - Actividad 2**\\n- [Inicio]...\\n- [Desarrollo]...\\n- [Cierre]...",
+          "campo_pda": "[Selección 1]",
           "organizacion": "Grupo completo",
           "recursos": "Material 1, Material 2...",
           "evaluacion": "Rúbrica: Observar si el alumno..."
@@ -515,11 +579,21 @@ FORMATO JSON ESPERADO:
       }
 
       // ─── POST-PROCESAMIENTO: Sobrescribir campo_pda con datos OFICIALES de la SEP ───
+      const autoritativoMap: Record<string, string> = {};
+      contenidosRes.forEach((c, idx) => {
+        autoritativoMap[`[Selección ${idx + 1}]`] = `CAMPO: ${c.nombreCampo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`;
+      });
+
       if (parsed.matrizDidactica && Array.isArray(parsed.matrizDidactica)) {
         for (const momento of parsed.matrizDidactica) {
           if (Array.isArray(momento.filas)) {
             for (const fila of momento.filas) {
-              fila.campo_pda = autoritativoCampoPda;
+              const matches = (fila.campo_pda || "").match(/\[Selección \d+\]/g);
+              if (matches && matches.length > 0) {
+                fila.campo_pda = matches.map((tag: string) => autoritativoMap[tag] || "").filter(Boolean).join('\n\n');
+              } else {
+                fila.campo_pda = autoritativoCampoPda; // fallback
+              }
             }
           }
         }
@@ -579,6 +653,9 @@ FORMATO JSON ESPERADO:
           weekStart,
           status: PlanningStatus.DRAFT,
           periodoProyecto: dto.periodoProyecto,
+          startDate: dto.startDate ? new Date(dto.startDate) : null,
+          endDate: dto.endDate ? new Date(dto.endDate) : null,
+          activitiesPerDay: dto.activitiesPerDay,
           problematica: dto.problematica,
           proposito: dto.proposito,
           instrumentoEvaluacion: dto.instrumentoEvaluacion || [],

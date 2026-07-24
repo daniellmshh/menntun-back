@@ -4,10 +4,10 @@ import * as fs from "fs";
 import * as path from "path";
 
 export interface RawPda {
-  grado_1: string;
-  grado_2: string;
-  grado_3: string;
-  [key: string]: string; 
+  grado_1: string | string[];
+  grado_2: string | string[];
+  grado_3: string | string[];
+  [key: string]: string | string[]; 
 }
 
 interface RawContenido {
@@ -174,7 +174,7 @@ export class NemKnowledgeService implements OnModuleInit {
             campoFormativo: sel.campoFormativoId,    // enum e.g. "LENGUAJES"
             nombreCampo: campo.nombre_campo,          // display "Lenguajes"
             contenido: contenido.nombre_contenido,
-            pda: sel.pdaLiteral || contenido.pda[pdaKey] || contenido.pda["grado_1"] || ""
+            pda: sel.pdaLiteral || (Array.isArray(contenido.pda[pdaKey]) ? (contenido.pda[pdaKey] as string[]).join("\\n") : contenido.pda[pdaKey]) || (Array.isArray(contenido.pda["grado_1"]) ? (contenido.pda["grado_1"] as string[]).join("\\n") : contenido.pda["grado_1"]) || ""
           });
         }
       }

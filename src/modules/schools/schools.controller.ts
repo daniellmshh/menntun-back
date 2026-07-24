@@ -20,12 +20,14 @@ import {
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { RequireModule } from "../../common/decorators/require-module.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { RequestUser, successResponse } from "../../common/types";
 
 @ApiTags("Schools")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
+@RequireModule("schools")
 @Controller("schools")
 export class SchoolsController {
   constructor(private readonly schoolsService: SchoolsService) {}

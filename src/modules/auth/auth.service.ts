@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, Inject } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createClient } from "@supabase/supabase-js";
-import { PrismaClient, UserRole } from "@prisma/client";
+import { PrismaClient, UserRole, SchoolType } from "@prisma/client";
 import { SyncUserDto } from "./auth.dto";
 import { RequestUser } from "../../common/types";
 
@@ -59,7 +59,15 @@ export class AuthService {
             parentProfile: true,
           },
         });
-        return user;
+        const school = await tx.school.findUnique({
+          where: { id: user.schoolId },
+          select: { type: true },
+        });
+
+        return {
+          ...user,
+          isIndependent: school?.type === 'INDEPENDENT',
+        };
       }
 
       user = await tx.user.create({
@@ -89,7 +97,7 @@ export class AuthService {
         });
       }
 
-      return tx.user.findUnique({
+      const createdUser = await tx.user.findUnique({
         where: { id: user.id },
         include: {
           teacherProfile: true,
@@ -97,6 +105,16 @@ export class AuthService {
           parentProfile: true,
         },
       });
+
+      const school = await tx.school.findUnique({
+        where: { id: dto.schoolId },
+        select: { type: true },
+      });
+
+      return {
+        ...createdUser,
+        isIndependent: school?.type === 'INDEPENDENT',
+      };
     });
   }
 
@@ -114,7 +132,16 @@ export class AuthService {
       throw new UnauthorizedException("User not found");
     }
 
-    return user;
+    // Fetch the school to determine workspace type
+    const school = await this.prisma.school.findUnique({
+      where: { id: user.schoolId },
+      select: { type: true },
+    });
+
+    return {
+      ...user,
+      isIndependent: school?.type === SchoolType.INDEPENDENT,
+    };
   }
 
   async getMeModules(currentUser: RequestUser): Promise<string[]> {
@@ -149,9 +176,9 @@ export class AuthService {
       }
     }
 
-    // 3. For non-teachers (or teachers with no restrictions), return all school-active modules
-    // Core modules are always visible in the sidebar (not gated)
-    const coreModules = ["auth", "schools", "academic"];
-    return Array.from(new Set([...coreModules, ...activeSchoolNames]));
+    // 3. For non-teachers (or teachers with no restrictions), return only school-active modules.
+    // NOTE: We intentionally do NOT hardcode schools/academic here anymore.
+    // Each school's active modules control what appears in the sidebar.
+    return Array.from(new Set(activeSchoolNames));
   }
 }
