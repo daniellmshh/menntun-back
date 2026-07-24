@@ -177,10 +177,15 @@ PDA (Grado ${order}°, TEXTO OFICIAL SEP — NO PARAFRASEAR): "${c.pda}"`
     const sDate = new Date(dto.startDate + "T12:00:00Z");
     const eDate = new Date(dto.endDate + "T12:00:00Z");
     let totalWorkDays = 0;
+    const workingDates: string[] = [];
     for (let d = new Date(sDate); d <= eDate; d.setDate(d.getDate() + 1)) {
-      if (d.getDay() !== 0 && d.getDay() !== 6) totalWorkDays++;
+      if (d.getDay() !== 0 && d.getDay() !== 6) {
+        totalWorkDays++;
+        workingDates.push(`Día ${totalWorkDays} (${d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })})`);
+      }
     }
     const totalActivities = totalWorkDays * dto.activitiesPerDay;
+    const scheduleStr = workingDates.join(', ');
 
     const systemPrompt = `Eres un Diseñador Curricular de Élite especializado en educación preescolar (Fase 2) bajo el enfoque de la Nueva Escuela Mexicana (NEM).
 Tu ÚNICA tarea es generar las ACTIVIDADES DIDÁCTICAS para una planeación. Los datos curriculares ya están definidos y son INAMOVIBLES.
@@ -213,11 +218,11 @@ INSTRUCCIONES CRÍTICAS (DE CUMPLIMIENTO ESTRICTO):
    - Inicio: Dinámica lúdica o provocación para captar la atención.
    - Desarrollo: Exploración activa, juego, experimentación con materiales concretos.
    - Cierre: Puesta en común y PREGUNTAS MEDIADORAS específicas (literalmente entre comillas) que la docente hará para detonar el pensamiento crítico.
-3. DENSIDAD DE ACTIVIDADES (CRÍTICO): El proyecto abarca ${totalWorkDays} días hábiles (del ${dto.startDate} al ${dto.endDate}). Tienes que generar EXACTAMENTE un TOTAL de ${totalActivities} actividades en toda la planeación (${dto.activitiesPerDay} por cada día hábil). Distribuye estas ${totalActivities} actividades de manera lógica a lo largo de las fases. Es REQUISITO INDISPENSABLE que la suma total sea exactamente ${totalActivities}. En el texto de cada actividad, debes etiquetar claramente a qué día pertenece, por ejemplo: "**Día 1 - Actividad 1**".
+3. DENSIDAD DE ACTIVIDADES (CRÍTICO): El proyecto abarca ${totalWorkDays} días hábiles (del ${dto.startDate} al ${dto.endDate}). Los días son: ${scheduleStr}. Tienes que generar EXACTAMENTE un TOTAL de ${totalActivities} actividades en toda la planeación (${dto.activitiesPerDay} por cada día hábil). Es REQUISITO INDISPENSABLE que la suma total sea exactamente ${totalActivities}. En la redacción de cada actividad, DEBES INCLUIR COMO TÍTULO EL DÍA Y LA FECHA EXACTA, por ejemplo: "**Día 1 (23/07/2026) - Actividad 1**".
 4. INTEGRACIÓN DE APOYOS: Inyecta PMC y Ajustes Razonables de forma explícita en la narrativa de las actividades.
 5. EVALUACIÓN FORMATIVA: Redacta INDICADORES DE LOGRO Y MANIFESTACIONES CONDUCTUALES observables (ej. "Rúbrica: Observar si el alumno dialoga asertivamente...").
 6. RECURSOS: Lista materiales físicos específicos (ingredientes, contenedores, cantidades si aplica).
-7. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' de cada actividad escribe ÚNICAMENTE la etiqueta o etiquetas de referencia (ej. "[Selección 1]") que correspondan específicamente a esa actividad. El sistema backend reemplazará estas etiquetas con el texto oficial. NUNCA escribas el texto del contenido ni del PDA tú mismo.
+7. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' de cada actividad escribe ÚNICAMENTE la etiqueta de referencia (ej. "[Selección 1]") que corresponda específicamente a esa actividad. El sistema backend reemplazará esta etiqueta con el texto oficial. NUNCA escribas el texto del contenido ni del PDA tú mismo. NUNCA combines múltiples selecciones en una misma actividad.
 8. AJUSTES Y PMC: Si el texto libre proporcionado en 'Ajustes Razonables' o 'Actividades PMC' carece de sentido pedagógico, está vacío o es incongruente, ignóralo y propón tú mismo la opción más adecuada para el contexto de la actividad.
 
 FORMATO JSON ESPERADO:
@@ -228,8 +233,8 @@ FORMATO JSON ESPERADO:
       "momento": "1. Nombre de la fase",
       "filas": [
         {
-          "actividades": "**Día 1 - Actividad 1**\\n- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Reflexión: '¿...'\\n\\n**Día 1 - Actividad 2**\\n- [Inicio]...\\n- [Desarrollo]...\\n- [Cierre]...",
-          "campo_pda": "[Selección 1][Selección 2]",
+          "actividades": "**Día 1 (23/07/2026) - Actividad 1**\\n- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Reflexión: '¿...'\\n\\n**Día 1 (23/07/2026) - Actividad 2**\\n- [Inicio]...\\n- [Desarrollo]...\\n- [Cierre]...",
+          "campo_pda": "[Selección 1]",
           "organizacion": "Grupo completo",
           "recursos": "Material 1, Material 2...",
           "evaluacion": "Rúbrica: Observar si el alumno..."
@@ -263,13 +268,22 @@ FORMATO JSON ESPERADO:
     }
 
     // ─── POST-PROCESAMIENTO: Sobrescribir campo_pda con datos OFICIALES de la SEP ───
-    // La IA puede haber puesto etiquetas "[Selección N]" o texto inventado.
-    // Reemplazamos el campo_pda de CADA FILA con el texto oficial del currículo NEM.
+    // Reemplazamos las etiquetas "[Selección N]" con el texto oficial del currículo NEM
+    const autoritativoMap: Record<string, string> = {};
+    contenidosRes.forEach((c, idx) => {
+      autoritativoMap[`[Selección ${idx + 1}]`] = `CAMPO: ${c.nombreCampo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`;
+    });
+
     if (parsed.matrizDidactica && Array.isArray(parsed.matrizDidactica)) {
       for (const momento of parsed.matrizDidactica) {
         if (Array.isArray(momento.filas)) {
           for (const fila of momento.filas) {
-            fila.campo_pda = autoritativoCampoPda;
+            const matches = (fila.campo_pda || "").match(/\[Selección \d+\]/g);
+            if (matches && matches.length > 0) {
+              fila.campo_pda = matches.map((tag: string) => autoritativoMap[tag] || "").filter(Boolean).join('\n\n');
+            } else {
+              fila.campo_pda = autoritativoCampoPda; // fallback
+            }
           }
         }
       }
@@ -462,10 +476,15 @@ PDA (Grado ${order}°, TEXTO OFICIAL SEP — NO PARAFRASEAR): "${c.pda}"`
       const sDate = new Date(dto.startDate + "T12:00:00Z");
       const eDate = new Date(dto.endDate + "T12:00:00Z");
       let totalWorkDays = 0;
+      const workingDates: string[] = [];
       for (let d = new Date(sDate); d <= eDate; d.setDate(d.getDate() + 1)) {
-        if (d.getDay() !== 0 && d.getDay() !== 6) totalWorkDays++;
+        if (d.getDay() !== 0 && d.getDay() !== 6) {
+          totalWorkDays++;
+          workingDates.push(`Día ${totalWorkDays} (${d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })})`);
+        }
       }
       const totalActivities = totalWorkDays * dto.activitiesPerDay;
+      const scheduleStr = workingDates.join(', ');
 
       const systemPrompt = `Eres un Diseñador Curricular de Élite especializado en educación preescolar (Fase 2) bajo el enfoque de la Nueva Escuela Mexicana (NEM).
 Tu Única tarea es generar las ACTIVIDADES DIDÁCTICAS para una planeación. Los datos curriculares ya están definidos y son INAMOVIBLES.
@@ -498,11 +517,11 @@ INSTRUCCIONES CRÍTICAS (DE CUMPLIMIENTO ESTRICTO):
    - Inicio: Dinámica lúdica o provocación para captar la atención.
    - Desarrollo: Exploración activa, juego, experimentación con materiales concretos.
    - Cierre: Puesta en común y PREGUNTAS MEDIADORAS específicas (literalmente entre comillas) que la docente hará para detonar el pensamiento crítico.
-3. DENSIDAD DE ACTIVIDADES (CRÍTICO): El proyecto abarca ${totalWorkDays} días hábiles (del ${dto.startDate} al ${dto.endDate}). Tienes que generar EXACTAMENTE un TOTAL de ${totalActivities} actividades en toda la planeación (${dto.activitiesPerDay} por cada día hábil). Distribuye estas ${totalActivities} actividades de manera lógica a lo largo de las fases. Es REQUISITO INDISPENSABLE que la suma total sea exactamente ${totalActivities}. En el texto de cada actividad, debes etiquetar claramente a qué día pertenece, por ejemplo: "**Día 1 - Actividad 1**".
+3. DENSIDAD DE ACTIVIDADES (CRÍTICO): El proyecto abarca ${totalWorkDays} días hábiles (del ${dto.startDate} al ${dto.endDate}). Los días son: ${scheduleStr}. Tienes que generar EXACTAMENTE un TOTAL de ${totalActivities} actividades en toda la planeación (${dto.activitiesPerDay} por cada día hábil). Es REQUISITO INDISPENSABLE que la suma total sea exactamente ${totalActivities}. En la redacción de cada actividad, DEBES INCLUIR COMO TÍTULO EL DÍA Y LA FECHA EXACTA, por ejemplo: "**Día 1 (23/07/2026) - Actividad 1**".
 4. INTEGRACIÓN DE APOYOS: Inyecta PMC y Ajustes Razonables de forma explícita en la narrativa de las actividades.
 5. EVALUACIÓN FORMATIVA: Redacta INDICADORES DE LOGRO Y MANIFESTACIONES CONDUCTUALES observables (ej. "Rúbrica: Observar si el alumno dialoga asertivamente...").
 6. RECURSOS: Lista materiales físicos específicos (ingredientes, contenedores, cantidades si aplica).
-7. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' de cada actividad escribe ÚNICAMENTE la etiqueta o etiquetas de referencia (ej. "[Selección 1]") que correspondan específicamente a esa actividad. El sistema backend reemplazará estas etiquetas con el texto oficial. NUNCA escribas el texto del contenido ni del PDA tú mismo.
+7. CAMPO_PDA — REGLA ABSOLUTA: En el campo 'campo_pda' de cada actividad escribe ÚNICAMENTE la etiqueta de referencia (ej. "[Selección 1]") que corresponda específicamente a esa actividad. El sistema backend reemplazará esta etiqueta con el texto oficial. NUNCA escribas el texto del contenido ni del PDA tú mismo. NUNCA combines múltiples selecciones en una misma actividad.
 8. AJUSTES Y PMC: Si el texto libre proporcionado en 'Ajustes Razonables' o 'Actividades PMC' carece de sentido pedagógico, está vacío o es incongruente, ignóralo y propón tú mismo la opción más adecuada para el contexto de la actividad.
 
 FORMATO JSON ESPERADO:
@@ -513,8 +532,8 @@ FORMATO JSON ESPERADO:
       "momento": "1. Nombre de la fase",
       "filas": [
         {
-          "actividades": "- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Preguntas: '¿...'",
-          "campo_pda": "[Selección 1][Selección 2]",
+          "actividades": "**Día 1 (23/07/2026) - Actividad 1**\\n- [Inicio] Dinámica...\\n- [Desarrollo] Acción...\\n- [Cierre] Reflexión: '¿...'\\n\\n**Día 1 (23/07/2026) - Actividad 2**\\n- [Inicio]...\\n- [Desarrollo]...\\n- [Cierre]...",
+          "campo_pda": "[Selección 1]",
           "organizacion": "Grupo completo",
           "recursos": "Material 1, Material 2...",
           "evaluacion": "Rúbrica: Observar si el alumno..."
@@ -560,11 +579,21 @@ FORMATO JSON ESPERADO:
       }
 
       // ─── POST-PROCESAMIENTO: Sobrescribir campo_pda con datos OFICIALES de la SEP ───
+      const autoritativoMap: Record<string, string> = {};
+      contenidosRes.forEach((c, idx) => {
+        autoritativoMap[`[Selección ${idx + 1}]`] = `CAMPO: ${c.nombreCampo}\nCONTENIDO: ${c.contenido}\nPDA: ${c.pda}`;
+      });
+
       if (parsed.matrizDidactica && Array.isArray(parsed.matrizDidactica)) {
         for (const momento of parsed.matrizDidactica) {
           if (Array.isArray(momento.filas)) {
             for (const fila of momento.filas) {
-              fila.campo_pda = autoritativoCampoPda;
+              const matches = (fila.campo_pda || "").match(/\[Selección \d+\]/g);
+              if (matches && matches.length > 0) {
+                fila.campo_pda = matches.map((tag: string) => autoritativoMap[tag] || "").filter(Boolean).join('\n\n');
+              } else {
+                fila.campo_pda = autoritativoCampoPda; // fallback
+              }
             }
           }
         }

@@ -269,7 +269,7 @@ export class PlanningExportService {
       <tbody>
         ${(momento.filas || []).map(fila => `
           <tr>
-            <td class="pre-wrap">${fila.actividades}</td>
+            <td class="pre-wrap">${fila.actividades ? fila.actividades.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') : ''}</td>
             <td class="pre-wrap text-xs">${fila.campo_pda}</td>
             <td class="pre-wrap">${fila.organizacion}</td>
             <td class="pre-wrap">${fila.recursos}</td>

@@ -5,7 +5,7 @@ import { PrismaClient } from "@prisma/client";
 
 async function run() {
   const prisma = new PrismaClient();
-  let user = await prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: { email: "independiente@prueba.com" },
     include: { teacherProfile: true }
   });
@@ -14,18 +14,6 @@ async function run() {
     console.error("User not found!");
     process.exit(1);
   }
-
-  if (!user.teacherProfile) {
-    console.log("Creating teacher profile for independent user...");
-    const newProfile = await prisma.teacherProfile.create({
-      data: {
-        userId: user.id
-      }
-    });
-    user.teacherProfile = newProfile as any;
-  }
-
-  console.log("Teacher profile:", user.teacherProfile?.id);
 
   const payload = {
     camposSeleccionados: [
@@ -80,8 +68,7 @@ async function run() {
     standaloneLevel: "PREESCOLAR",
     standaloneGradeOrder: 2,
     periodoProyecto: "Del 8 al 19 de junio de 2026",
-    contextoInicial: "El proyecto se desarrollará a lo largo de dos semanas y se centrará en la identificación de riesgos escolares mediante recorridos y la posterior creación y colocación colaborativa de señalamientos de protección civil en el plantel.",
-    targetTeacherProfileId: user.teacherProfile?.id
+    contextoInicial: "El proyecto se desarrollará a lo largo de dos semanas y se centrará en la identificación de riesgos escolares mediante recorridos y la posterior creación y colocación colaborativa de señalamientos de protección civil en el plantel."
   };
 
   const app = await NestFactory.createApplicationContext(AppModule);
