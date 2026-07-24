@@ -34,6 +34,12 @@ export class ModulesGuard implements CanActivate {
       return true;
     }
 
+    // Core modules are always active
+    const CORE_MODULES = ["auth", "schools"];
+    if (CORE_MODULES.includes(requiredModule)) {
+      return true;
+    }
+
     // Verify if the module is active for the user's school
     const activeModule = await this.prisma.schoolModule.findFirst({
       where: {

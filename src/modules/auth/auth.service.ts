@@ -61,12 +61,13 @@ export class AuthService {
         });
         const school = await tx.school.findUnique({
           where: { id: user.schoolId },
-          select: { type: true },
+          select: { type: true, name: true },
         });
 
         return {
           ...user,
           isIndependent: school?.type === 'INDEPENDENT',
+          schoolName: school?.name,
         };
       }
 
@@ -108,12 +109,13 @@ export class AuthService {
 
       const school = await tx.school.findUnique({
         where: { id: dto.schoolId },
-        select: { type: true },
+        select: { type: true, name: true },
       });
 
       return {
         ...createdUser,
         isIndependent: school?.type === 'INDEPENDENT',
+        schoolName: school?.name,
       };
     });
   }
@@ -132,15 +134,15 @@ export class AuthService {
       throw new UnauthorizedException("User not found");
     }
 
-    // Fetch the school to determine workspace type
     const school = await this.prisma.school.findUnique({
       where: { id: user.schoolId },
-      select: { type: true },
+      select: { type: true, name: true },
     });
 
     return {
       ...user,
-      isIndependent: school?.type === SchoolType.INDEPENDENT,
+      isIndependent: school?.type === 'INDEPENDENT',
+      schoolName: school?.name,
     };
   }
 
