@@ -1,6 +1,6 @@
 import {
   IsString, IsNotEmpty, IsEnum, IsOptional, IsUUID,
-  IsInt, Min, IsArray, ValidateNested, IsBoolean
+  IsInt, Min, Max, IsArray, ValidateNested, IsBoolean
 } from "class-validator";
 import { Type } from "class-transformer";
 import { PlanningModalidad, NivelEducativo, PlanningStatus, CampoFormativo, EjeArticulador } from "@prisma/client";
@@ -57,10 +57,22 @@ export class GeneratePlanningDto {
   @IsUUID()
   targetTeacherProfileId?: string;
 
-  // Sara format fields
   @IsOptional()
   @IsString()
   periodoProyecto?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  startDate: string;
+
+  @IsString()
+  @IsNotEmpty()
+  endDate: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  activitiesPerDay: number;
 
   @IsString()
   @IsNotEmpty()

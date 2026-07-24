@@ -533,6 +533,9 @@ model Planning {
   status               PlanningStatus    @default(DRAFT)
   // New Sara format fields
   periodoProyecto      String?           @map("periodo_proyecto")
+  startDate            DateTime?         @map("start_date") @db.Date
+  endDate              DateTime?         @map("end_date") @db.Date
+  activitiesPerDay     Int?              @default(1) @map("activities_per_day")
   problematica         String?
   proposito            String?
   instrumentoEvaluacion String[]         @default([]) @map("instrumento_evaluacion")

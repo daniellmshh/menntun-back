@@ -180,7 +180,7 @@ export class PlanningExportService {
     <div class="meta-grid">
       <div><span class="bold">Docente:</span> ${planning.teacherProfile.user.firstName} ${planning.teacherProfile.user.lastName}</div>
       <div><span class="bold">Nivel:</span> ${levelName} - ${gradeOrder}° Grado</div>
-      <div><span class="bold">Periodo:</span> ${planning.periodoProyecto || '-'}</div>
+      <div><span class="bold">Periodo:</span> ${planning.startDate && planning.endDate ? `Del ${planning.startDate.toISOString().split('T')[0]} al ${planning.endDate.toISOString().split('T')[0]}` : (planning.periodoProyecto || '-')}</div>
       <div><span class="bold">Modalidad:</span> ${planning.modalidad}</div>
     </div>
   </div>
