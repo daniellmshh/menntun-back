@@ -10,6 +10,7 @@ datasource db {
 
 enum UserRole {
   SUPER_ADMIN
+  ORG_ADMIN
   SCHOOL_ADMIN
   TEACHER
   STUDENT
@@ -134,6 +135,23 @@ enum CargoEstado {
   CANCELADO
 }
 
+// ─── ORGANIZATIONS ───────────────────────
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  rfc       String?
+  logoUrl   String?  @map("logo_url")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  schools School[]
+  users   User[]
+
+  @@map("organizations")
+}
+
 // ─── SCHOOLS ───────────────────────────
 
 model School {
@@ -143,12 +161,14 @@ model School {
   address   String?
   phone     String?
   email     String?
-  logoUrl   String?  @map("logo_url")
-  active    Boolean    @default(true)
-  type      SchoolType @default(SCHOOL)
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  logoUrl        String?      @map("logo_url")
+  active         Boolean      @default(true)
+  type           SchoolType   @default(SCHOOL)
+  organizationId String?      @map("organization_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
 
+  organization           Organization?          @relation(fields: [organizationId], references: [id])
   users                  User[]
   schoolModules          SchoolModule[]
   schoolYears            SchoolYear[]
@@ -213,24 +233,29 @@ model Period {
 // ─── USERS & PROFILES ──────────────────
 
 model User {
-  id          String   @id @default(uuid())
-  schoolId    String   @map("school_id")
-  supabaseUid String   @unique @map("supabase_uid")
-  email       String
-  role        UserRole
-  firstName   String   @map("first_name")
-  lastName    String   @map("last_name")
-  phone       String?
-  avatarUrl   String?  @map("avatar_url")
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(uuid())
+  schoolId       String?  @map("school_id")
+  organizationId String?  @map("organization_id")
+  supabaseUid    String   @unique @map("supabase_uid")
+  email          String
+  role           UserRole
+  firstName      String   @map("first_name")
+  lastName       String   @map("last_name")
+  phone          String?
+  avatarUrl      String?  @map("avatar_url")
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  school         School          @relation(fields: [schoolId], references: [id])
+  school         School?         @relation(fields: [schoolId], references: [id])
+  organization   Organization?   @relation(fields: [organizationId], references: [id])
   teacherProfile TeacherProfile?
   studentProfile StudentProfile?
   parentProfile  ParentProfile?
 
+  // Since schoolId can be null, the unique constraint on [schoolId, email] might not work exactly as before for ORG_ADMINs.
+  // But PostgreSQL treats nulls as distinct, so multiple users could have null schoolId and the same email.
+  // We'll keep it as is, or rely on supabaseUid uniqueness.
   @@unique([schoolId, email])
   @@map("users")
 }

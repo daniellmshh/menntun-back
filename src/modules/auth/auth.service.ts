@@ -59,10 +59,13 @@ export class AuthService {
             parentProfile: true,
           },
         });
-        const school = await tx.school.findUnique({
-          where: { id: user.schoolId },
-          select: { type: true, name: true },
-        });
+        let school: any = null;
+        if (user.schoolId) {
+          school = await tx.school.findUnique({
+            where: { id: user.schoolId },
+            select: { type: true, name: true },
+          });
+        }
 
         return {
           ...user,
@@ -107,10 +110,13 @@ export class AuthService {
         },
       });
 
-      const school = await tx.school.findUnique({
-        where: { id: dto.schoolId },
-        select: { type: true, name: true },
-      });
+      let school: any = null;
+      if (dto.schoolId) {
+        school = await tx.school.findUnique({
+          where: { id: dto.schoolId },
+          select: { type: true, name: true },
+        });
+      }
 
       return {
         ...createdUser,
@@ -134,23 +140,43 @@ export class AuthService {
       throw new UnauthorizedException("User not found");
     }
 
-    const school = await this.prisma.school.findUnique({
-      where: { id: user.schoolId },
-      select: { type: true, name: true },
-    });
+    let schoolName: string | undefined = undefined;
+    let isIndependent = false;
+    let organizationSchools: any = undefined;
+
+    if (user.role === UserRole.ORG_ADMIN && user.organizationId) {
+      organizationSchools = await this.prisma.school.findMany({
+        where: { organizationId: user.organizationId },
+        select: { id: true, name: true, code: true }
+      });
+    } else if (user.schoolId) {
+      const school = await this.prisma.school.findUnique({
+        where: { id: user.schoolId },
+        select: { type: true, name: true },
+      });
+      schoolName = school?.name;
+      isIndependent = school?.type === 'INDEPENDENT';
+    }
 
     return {
       ...user,
-      isIndependent: school?.type === 'INDEPENDENT',
-      schoolName: school?.name,
+      isIndependent,
+      schoolName,
+      organizationSchools,
     };
   }
 
   async getMeModules(currentUser: RequestUser): Promise<string[]> {
+    const targetSchoolId = currentUser.activeSchoolId || currentUser.schoolId;
+
+    if (!targetSchoolId) {
+      return [];
+    }
+
     // 1. Get all modules that are active for this school
     const activeSchoolModules = await this.prisma.schoolModule.findMany({
       where: {
-        schoolId: currentUser.schoolId,
+        schoolId: targetSchoolId,
         active: true,
       },
       select: {

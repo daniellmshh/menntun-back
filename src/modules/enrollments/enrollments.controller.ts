@@ -31,7 +31,7 @@ export class EnrollmentsController {
     @CurrentUser() user: RequestUser,
     @Query("schoolId") schoolId?: string,
   ) {
-    const data = await this.enrollmentsService.findAll(user, schoolId);
+    const data = await this.enrollmentsService.findAll(user, schoolId as string);
     return { data };
   }
 
@@ -43,22 +43,22 @@ export class EnrollmentsController {
   ) {
     // Para simplificar, la escuela la asume el admin o requiere que SUPER_ADMIN pase un DTO distinto
     // En este caso forzamos al schoolId del admin (asumiendo que SUPER_ADMIN opera bajo contexto si no manda otro)
-    const schoolId = user.schoolId; 
-    const data = await this.enrollmentsService.createDraft(dto, schoolId);
+    const schoolId = (user.activeSchoolId || user.schoolId) as string; 
+    const data = await this.enrollmentsService.createDraft(dto, schoolId as string);
     return { data };
   }
 
   @Patch(":id/submit")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async submit(@Param("id") id: string, @CurrentUser() user: RequestUser) {
-    const data = await this.enrollmentsService.submit(id, user.schoolId);
+    const data = await this.enrollmentsService.submit(id, (user.activeSchoolId || user.schoolId) as string as string);
     return { data, message: "Solicitud enviada" };
   }
 
   @Patch(":id/in-review")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async markInReview(@Param("id") id: string, @CurrentUser() user: RequestUser) {
-    const data = await this.enrollmentsService.markInReview(id, user.schoolId);
+    const data = await this.enrollmentsService.markInReview(id, (user.activeSchoolId || user.schoolId) as string as string);
     return { data, message: "Solicitud en revisión" };
   }
 
@@ -79,7 +79,7 @@ export class EnrollmentsController {
     @CurrentUser() user: RequestUser,
     @Body() dto: AprobarSolicitudDto,
   ) {
-    const data = await this.enrollmentsService.approve(id, user.schoolId, dto);
+    const data = await this.enrollmentsService.approve(id, (user.activeSchoolId || user.schoolId) as string, dto);
     return { data, message: "Solicitud aprobada y estudiante matriculado" };
   }
 
@@ -90,7 +90,7 @@ export class EnrollmentsController {
     @CurrentUser() user: RequestUser,
     @Body("reason") reason: string,
   ) {
-    const data = await this.enrollmentsService.reject(id, user.schoolId, reason);
+    const data = await this.enrollmentsService.reject(id, (user.activeSchoolId || user.schoolId) as string, reason);
     return { data, message: "Solicitud rechazada" };
   }
 
@@ -101,7 +101,7 @@ export class EnrollmentsController {
     @CurrentUser() user: RequestUser,
     @Body("reason") reason: string,
   ) {
-    const data = await this.enrollmentsService.cancel(id, user.schoolId, reason);
+    const data = await this.enrollmentsService.cancel(id, (user.activeSchoolId || user.schoolId) as string, reason);
     return { data, message: "Inscripción cancelada y reversada" };
   }
 }

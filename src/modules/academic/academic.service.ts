@@ -83,7 +83,7 @@ export class AcademicService {
       : (user?.schoolId || schoolId);
 
     return prisma.grade.findMany({
-      where: { schoolId: targetSchoolId },
+      where: { schoolId: targetSchoolId as string as string },
       orderBy: { order: "asc" },
       include: {
         school: { select: { name: true, code: true } },
@@ -116,7 +116,7 @@ export class AcademicService {
 
     const existing = await prisma.grade.findUnique({
       where: {
-        schoolId_name: { schoolId: targetSchoolId, name: dto.name },
+        schoolId_name: { schoolId: targetSchoolId as string, name: dto.name },
       },
     });
 
@@ -129,7 +129,7 @@ export class AcademicService {
         name: dto.name,
         order: dto.order,
         level: dto.level,
-        schoolId: targetSchoolId,
+        schoolId: targetSchoolId as string,
       },
     });
   }
@@ -183,7 +183,7 @@ export class AcademicService {
       : user.schoolId;
 
     return prisma.schoolYear.findMany({
-      where: { schoolId: scopedSchoolId },
+      where: { schoolId: scopedSchoolId as string },
       orderBy: { startDate: "desc" },
       include: {
         periods: { orderBy: { order: "asc" } },
@@ -258,7 +258,7 @@ export class AcademicService {
 
     const created = await prisma.schoolYear.create({
       data: {
-        schoolId: targetSchoolId,
+        schoolId: targetSchoolId as string,
         name: dto.name,
         startDate: new Date(dto.startDate),
         endDate: new Date(dto.endDate),
@@ -415,7 +415,7 @@ export class AcademicService {
 
     return prisma.group.findMany({
       where: {
-        schoolId: targetSchoolId,
+        schoolId: targetSchoolId as string,
         ...(schoolYearId ? { schoolYearId } : {}),
       },
       orderBy: { name: "asc" },
@@ -496,7 +496,7 @@ export class AcademicService {
     const existing = await prisma.group.findUnique({
       where: {
         schoolId_gradeId_schoolYearId_name: {
-          schoolId: targetSchoolId,
+          schoolId: targetSchoolId as string,
           gradeId: dto.gradeId,
           schoolYearId: dto.schoolYearId,
           name: dto.name,
@@ -514,7 +514,7 @@ export class AcademicService {
         gradeId: dto.gradeId,
         schoolYearId: dto.schoolYearId,
         maxStudents: dto.maxStudents,
-        schoolId: targetSchoolId,
+        schoolId: targetSchoolId as string,
       },
       include: {
         grade: { select: { name: true, level: true } },

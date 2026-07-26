@@ -14,7 +14,10 @@ export interface RequestUser {
   supabaseUid: string;
   email: string;
   role: UserRole;
-  schoolId: string;
+  schoolId?: string | null;
+  organizationId?: string | null;
+  activeSchoolId?: string | null;
+  organizationSchools?: { id: string; name: string; code: string }[];
   firstName: string;
   lastName: string;
 }

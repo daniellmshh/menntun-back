@@ -72,7 +72,7 @@ export class PlanningGenerationService {
     currentUser: RequestUser,
   ): Promise<{ planning: Planning }> {
     if (currentUser.role !== UserRole.SUPER_ADMIN) {
-      await this.verifyPlanningActive(currentUser.schoolId);
+      await this.verifyPlanningActive((currentUser.activeSchoolId || currentUser.schoolId) as string);
     }
 
     let resolvedTeacherProfileId: string;
@@ -106,7 +106,7 @@ export class PlanningGenerationService {
         if (!targetTeacher) {
           throw new NotFoundException("El perfil de profesor especificado no existe.");
         }
-        if (targetTeacher.user.schoolId !== currentUser.schoolId) {
+        if (targetTeacher.user.schoolId !== (currentUser.activeSchoolId || currentUser.schoolId) as string) {
           throw new ForbiddenException("No puedes generar planeaciones para un profesor de otra escuela.");
         }
         resolvedTeacherProfileId = targetTeacher.id;
@@ -115,7 +115,7 @@ export class PlanningGenerationService {
       throw new ForbiddenException("No tiene permisos para generar planeaciones.");
     }
 
-    const isAcademicActive = await this.checkAcademicActive(currentUser.schoolId);
+    const isAcademicActive = await this.checkAcademicActive((currentUser.activeSchoolId || currentUser.schoolId) as string);
     let isStandalone = true;
     let level: NivelEducativo;
     let order: number;
@@ -125,18 +125,18 @@ export class PlanningGenerationService {
         throw new BadRequestException("El módulo académico no está activo para esta escuela. Debe usar el modo Standalone.");
       }
       const group = await this.prisma.group.findFirst({
-        where: { id: dto.groupId, schoolId: currentUser.schoolId },
+        where: { id: dto.groupId, schoolId: (currentUser.activeSchoolId || currentUser.schoolId) as string },
         include: { grade: true },
       });
       if (!group) {
         throw new NotFoundException("El grupo especificado no existe o no pertenece a esta escuela.");
       }
-      if (!group.grade.level) {
+      if (!group.grade?.level) {
         throw new BadRequestException("El grado asociado al grupo no tiene un nivel educativo configurado.");
       }
       isStandalone = false;
-      level = group.grade.level;
-      order = group.grade.order;
+      level = group.grade?.level;
+      order = group.grade?.order;
     } else {
       if (!dto.standaloneLevel || !dto.standaloneGradeOrder) {
         throw new BadRequestException("Para el modo Standalone, debe proporcionar standaloneLevel y standaloneGradeOrder.");
@@ -375,7 +375,7 @@ FORMATO JSON ESPERADO:
     try {
       // ── Validaciones (igual que generatePlanning) ──────────────────────────
       if (currentUser.role !== UserRole.SUPER_ADMIN) {
-        await this.verifyPlanningActive(currentUser.schoolId);
+        await this.verifyPlanningActive((currentUser.activeSchoolId || currentUser.schoolId) as string);
       }
 
       let resolvedTeacherProfileId: string;
@@ -409,7 +409,7 @@ FORMATO JSON ESPERADO:
           if (!targetTeacher) {
             throw new NotFoundException("El perfil de profesor especificado no existe.");
           }
-          if (targetTeacher.user.schoolId !== currentUser.schoolId) {
+          if (targetTeacher.user.schoolId !== (currentUser.activeSchoolId || currentUser.schoolId) as string) {
             throw new ForbiddenException("No puedes generar planeaciones para un profesor de otra escuela.");
           }
           resolvedTeacherProfileId = targetTeacher.id;
@@ -418,7 +418,7 @@ FORMATO JSON ESPERADO:
         throw new ForbiddenException("No tiene permisos para generar planeaciones.");
       }
 
-      const isAcademicActive = await this.checkAcademicActive(currentUser.schoolId);
+      const isAcademicActive = await this.checkAcademicActive((currentUser.activeSchoolId || currentUser.schoolId) as string);
       let isStandalone = true;
       let level: NivelEducativo;
       let order: number;
@@ -428,18 +428,18 @@ FORMATO JSON ESPERADO:
           throw new BadRequestException("El módulo académico no está activo para esta escuela. Debe usar el modo Standalone.");
         }
         const group = await this.prisma.group.findFirst({
-          where: { id: dto.groupId, schoolId: currentUser.schoolId },
+          where: { id: dto.groupId, schoolId: (currentUser.activeSchoolId || currentUser.schoolId) as string },
           include: { grade: true },
         });
         if (!group) {
           throw new NotFoundException("El grupo especificado no existe o no pertenece a esta escuela.");
         }
-        if (!group.grade.level) {
+        if (!group.grade?.level) {
           throw new BadRequestException("El grado asociado al grupo no tiene un nivel educativo configurado.");
         }
         isStandalone = false;
-        level = group.grade.level;
-        order = group.grade.order;
+        level = group.grade?.level;
+        order = group.grade?.order;
       } else {
         if (!dto.standaloneLevel || !dto.standaloneGradeOrder) {
           throw new BadRequestException("Para el modo Standalone, debe proporcionar standaloneLevel y standaloneGradeOrder.");
@@ -680,14 +680,14 @@ FORMATO JSON ESPERADO:
 
   async findAll(currentUser: RequestUser): Promise<Planning[]> {
     if (currentUser.role !== UserRole.SUPER_ADMIN) {
-      await this.verifyPlanningActive(currentUser.schoolId);
+      await this.verifyPlanningActive((currentUser.activeSchoolId || currentUser.schoolId) as string);
     }
     if (currentUser.role === UserRole.SUPER_ADMIN) {
       return this.prisma.planning.findMany({ orderBy: { createdAt: "desc" } });
     }
     if (currentUser.role === UserRole.SCHOOL_ADMIN) {
       return this.prisma.planning.findMany({
-        where: { teacherProfile: { user: { schoolId: currentUser.schoolId } } },
+        where: { teacherProfile: { user: { schoolId: (currentUser.activeSchoolId || currentUser.schoolId) as string } } },
         orderBy: { createdAt: "desc" },
       });
     }
@@ -703,7 +703,7 @@ FORMATO JSON ESPERADO:
 
   async findById(id: string, currentUser: RequestUser): Promise<Planning> {
     if (currentUser.role !== UserRole.SUPER_ADMIN) {
-      await this.verifyPlanningActive(currentUser.schoolId);
+      await this.verifyPlanningActive((currentUser.activeSchoolId || currentUser.schoolId) as string);
     }
     const planning = await this.prisma.planning.findUnique({
       where: { id },
@@ -713,7 +713,7 @@ FORMATO JSON ESPERADO:
 
     if (currentUser.role === UserRole.SUPER_ADMIN) return planning;
     if (currentUser.role === UserRole.SCHOOL_ADMIN) {
-      if (planning.teacherProfile.user.schoolId !== currentUser.schoolId) {
+      if (planning.teacherProfile.user.schoolId !== (currentUser.activeSchoolId || currentUser.schoolId) as string) {
         throw new ForbiddenException("No tiene permisos.");
       }
       return planning;
@@ -729,7 +729,7 @@ FORMATO JSON ESPERADO:
 
   async update(id: string, dto: UpdatePlanningDto, currentUser: RequestUser): Promise<Planning> {
     if (currentUser.role !== UserRole.SUPER_ADMIN) {
-      await this.verifyPlanningActive(currentUser.schoolId);
+      await this.verifyPlanningActive((currentUser.activeSchoolId || currentUser.schoolId) as string);
     }
     const planning = await this.prisma.planning.findUnique({
       where: { id },
@@ -739,7 +739,7 @@ FORMATO JSON ESPERADO:
 
     if (currentUser.role !== UserRole.SUPER_ADMIN) {
       if (currentUser.role === UserRole.SCHOOL_ADMIN) {
-        if (planning.teacherProfile.user.schoolId !== currentUser.schoolId) throw new ForbiddenException("Sin permisos.");
+        if (planning.teacherProfile.user.schoolId !== (currentUser.activeSchoolId || currentUser.schoolId) as string) throw new ForbiddenException("Sin permisos.");
       } else {
         const teacherProfile = await this.prisma.teacherProfile.findUnique({ where: { userId: currentUser.id } });
         if (!teacherProfile || planning.teacherProfileId !== teacherProfile.id) throw new ForbiddenException("No dueño.");
@@ -765,7 +765,7 @@ FORMATO JSON ESPERADO:
 
   async delete(id: string, currentUser: RequestUser): Promise<{ success: boolean }> {
     if (currentUser.role !== UserRole.SUPER_ADMIN) {
-      await this.verifyPlanningActive(currentUser.schoolId);
+      await this.verifyPlanningActive((currentUser.activeSchoolId || currentUser.schoolId) as string);
     }
     const planning = await this.prisma.planning.findUnique({
       where: { id },
@@ -775,7 +775,7 @@ FORMATO JSON ESPERADO:
 
     if (currentUser.role !== UserRole.SUPER_ADMIN) {
       if (currentUser.role === UserRole.SCHOOL_ADMIN) {
-        if (planning.teacherProfile.user.schoolId !== currentUser.schoolId) throw new ForbiddenException("Sin permisos.");
+        if (planning.teacherProfile.user.schoolId !== (currentUser.activeSchoolId || currentUser.schoolId) as string) throw new ForbiddenException("Sin permisos.");
       } else {
         const teacherProfile = await this.prisma.teacherProfile.findUnique({ where: { userId: currentUser.id } });
         if (!teacherProfile || planning.teacherProfileId !== teacherProfile.id) throw new ForbiddenException("No dueño.");
