@@ -37,7 +37,7 @@ export class StudentsService {
       targetSchoolId = schoolIdFilter;
     } else {
       // SCHOOL_ADMIN and TEACHER can view students in their own school boundary
-      targetSchoolId = currentUser.schoolId;
+      targetSchoolId = (currentUser.activeSchoolId || currentUser.schoolId) as string;
     }
 
     const whereClause: any = {
@@ -126,7 +126,7 @@ export class StudentsService {
     // Enforce boundary checks
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      currentUser.schoolId !== student.schoolId
+      (currentUser.activeSchoolId || currentUser.schoolId) as string !== student.schoolId
     ) {
       throw new ForbiddenException("Access denied to this student's details");
     }
@@ -142,10 +142,10 @@ export class StudentsService {
         throw new BadRequestException("schoolId is required for SUPER_ADMIN");
       }
     } else if (currentUser.role === UserRole.SCHOOL_ADMIN) {
-      if (schoolId && schoolId !== currentUser.schoolId) {
+      if (schoolId && schoolId !== (currentUser.activeSchoolId || currentUser.schoolId) as string) {
         throw new ForbiddenException("Cannot create student for another school");
       }
-      schoolId = currentUser.schoolId;
+      schoolId = (currentUser.activeSchoolId || currentUser.schoolId) as string;
     } else {
       throw new ForbiddenException("Only administrators can register students");
     }
@@ -275,7 +275,7 @@ export class StudentsService {
     // Enforce boundary checks
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      currentUser.schoolId !== student.schoolId
+      (currentUser.activeSchoolId || currentUser.schoolId) as string !== student.schoolId
     ) {
       throw new ForbiddenException("Cannot modify this student's details");
     }
@@ -436,7 +436,7 @@ export class StudentsService {
     // Enforce boundary checks
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      currentUser.schoolId !== student.schoolId
+      (currentUser.activeSchoolId || currentUser.schoolId) as string !== student.schoolId
     ) {
       throw new ForbiddenException("Cannot delete this student");
     }

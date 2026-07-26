@@ -15,6 +15,7 @@ import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { RolesGuard } from "./common/guards/roles.guard";
 import { ModulesGuard } from "./common/guards/modules.guard";
 import { AppController } from "./app.controller";
+import { OrganizationsModule } from './modules/organizations/organizations.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AppController } from "./app.controller";
     StudentsModule,
     PlanningModule,
     EnrollmentsModule,
+    OrganizationsModule,
   ],
   controllers: [AppController],
   providers: [

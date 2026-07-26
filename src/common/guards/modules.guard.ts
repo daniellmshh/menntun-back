@@ -25,6 +25,13 @@ export class ModulesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user: RequestUser = request.user;
 
+    const headerSchoolId = request.headers['x-active-school-id'];
+    const activeSchoolId = headerSchoolId || user?.schoolId;
+
+    if (user) {
+      user.activeSchoolId = activeSchoolId;
+    }
+
     if (!user) {
       throw new ForbiddenException("No user in request");
     }
@@ -40,10 +47,14 @@ export class ModulesGuard implements CanActivate {
       return true;
     }
 
-    // Verify if the module is active for the user's school
+    if (!activeSchoolId) {
+      throw new ForbiddenException("No active school context found for this request");
+    }
+
+    // Verify if the module is active for the user's school (or active school for ORG_ADMIN)
     const activeModule = await this.prisma.schoolModule.findFirst({
       where: {
-        schoolId: user.schoolId,
+        schoolId: activeSchoolId,
         module: {
           equals: requiredModule,
           mode: "insensitive", // Just in case of casing differences

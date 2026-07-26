@@ -36,10 +36,10 @@ export class TeachersService {
     if (currentUser.role === UserRole.SUPER_ADMIN) {
       targetSchoolId = schoolIdFilter;
     } else if (currentUser.role === UserRole.SCHOOL_ADMIN) {
-      targetSchoolId = currentUser.schoolId;
+      targetSchoolId = (currentUser.activeSchoolId || currentUser.schoolId) as string;
     } else {
       // Teachers can view the directory of their own school
-      targetSchoolId = currentUser.schoolId;
+      targetSchoolId = (currentUser.activeSchoolId || currentUser.schoolId) as string;
     }
 
     const whereClause: any = {
@@ -109,7 +109,7 @@ export class TeachersService {
     // Enforce boundary checks
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      currentUser.schoolId !== teacher.schoolId
+      (currentUser.activeSchoolId || currentUser.schoolId) as string !== teacher.schoolId
     ) {
       throw new ForbiddenException("Access denied to this teacher's details");
     }
@@ -125,10 +125,10 @@ export class TeachersService {
         throw new BadRequestException("schoolId is required for SUPER_ADMIN");
       }
     } else if (currentUser.role === UserRole.SCHOOL_ADMIN) {
-      if (schoolId && schoolId !== currentUser.schoolId) {
+      if (schoolId && schoolId !== (currentUser.activeSchoolId || currentUser.schoolId) as string) {
         throw new ForbiddenException("Cannot create teacher for another school");
       }
-      schoolId = currentUser.schoolId;
+      schoolId = (currentUser.activeSchoolId || currentUser.schoolId) as string;
     } else {
       throw new ForbiddenException("Only administrators can register teachers");
     }
@@ -234,7 +234,7 @@ export class TeachersService {
     // Enforce boundary checks
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      currentUser.schoolId !== teacher.schoolId
+      (currentUser.activeSchoolId || currentUser.schoolId) as string !== teacher.schoolId
     ) {
       throw new ForbiddenException("Cannot modify this teacher's details");
     }
@@ -243,7 +243,7 @@ export class TeachersService {
     if (dto.allowedModules !== undefined) {
       if (dto.allowedModules.length > 0) {
         const activeSchoolModules = await this.prisma.schoolModule.findMany({
-          where: { schoolId: teacher.schoolId, active: true },
+          where: { schoolId: teacher.schoolId as string, active: true },
           select: { module: true },
         });
         const activeNames = activeSchoolModules.map((sm) => sm.module.toLowerCase());

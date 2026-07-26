@@ -96,8 +96,11 @@ export class SchoolsService {
 
   // ─── GET OWN SCHOOL (school_admin / any role) ────────────────────
   async findMySchool(currentUser: RequestUser) {
+    const targetSchoolId = currentUser.activeSchoolId || (currentUser.activeSchoolId || currentUser.schoolId) as string;
+    if (!targetSchoolId) throw new NotFoundException("No active school found");
+
     const school = await prisma.school.findUnique({
-      where: { id: currentUser.schoolId },
+      where: { id: targetSchoolId },
       include: {
         schoolModules: {
           orderBy: { module: "asc" },
@@ -126,13 +129,6 @@ export class SchoolsService {
 
   // ─── SUPER ADMIN: get any school by id ───────────────────────────
   async findById(id: string, currentUser: RequestUser) {
-    if (
-      currentUser.role !== UserRole.SUPER_ADMIN &&
-      currentUser.schoolId !== id
-    ) {
-      throw new ForbiddenException("Access denied");
-    }
-
     const school = await prisma.school.findUnique({
       where: { id },
       include: {
@@ -142,29 +138,52 @@ export class SchoolsService {
     });
 
     if (!school) throw new NotFoundException("School not found");
+
+    const targetSchoolId = currentUser.activeSchoolId || (currentUser.activeSchoolId || currentUser.schoolId) as string;
+    const isOrgAdminHasAccess = currentUser.role === UserRole.ORG_ADMIN && currentUser.organizationId === school.organizationId;
+
+    if (
+      currentUser.role !== UserRole.SUPER_ADMIN &&
+      targetSchoolId !== id &&
+      !isOrgAdminHasAccess
+    ) {
+      throw new ForbiddenException("Access denied");
+    }
+
     return school;
   }
 
   // ─── UPDATE SCHOOL ────────────────────────────────────────────────
   async update(id: string, dto: UpdateSchoolDto, currentUser: RequestUser) {
+    const school = await prisma.school.findUnique({ where: { id } });
+    if (!school) throw new NotFoundException("School not found");
+
+    const targetSchoolId = currentUser.activeSchoolId || (currentUser.activeSchoolId || currentUser.schoolId) as string;
+    const isOrgAdminHasAccess = currentUser.role === UserRole.ORG_ADMIN && currentUser.organizationId === school.organizationId;
+
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      currentUser.schoolId !== id
+      targetSchoolId !== id &&
+      !isOrgAdminHasAccess
     ) {
       throw new ForbiddenException("Access denied");
     }
-
-    const school = await prisma.school.findUnique({ where: { id } });
-    if (!school) throw new NotFoundException("School not found");
 
     return prisma.school.update({ where: { id }, data: dto });
   }
 
   // ─── GET MODULES FOR A SCHOOL ─────────────────────────────────────
   async getModules(schoolId: string, currentUser: RequestUser) {
+    const school = await prisma.school.findUnique({ where: { id: schoolId } });
+    if (!school) throw new NotFoundException("School not found");
+
+    const targetSchoolId = currentUser.activeSchoolId || (currentUser.activeSchoolId || currentUser.schoolId) as string;
+    const isOrgAdminHasAccess = currentUser.role === UserRole.ORG_ADMIN && currentUser.organizationId === school.organizationId;
+
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      currentUser.schoolId !== schoolId
+      targetSchoolId !== schoolId &&
+      !isOrgAdminHasAccess
     ) {
       throw new ForbiddenException("Access denied");
     }
@@ -223,7 +242,7 @@ export class SchoolsService {
 
   // ─── GET SCHOOL STATS ─────────────────────────────────────────────
   async getStats(currentUser: RequestUser) {
-    const schoolId = currentUser.schoolId;
+    const schoolId = (currentUser.activeSchoolId || currentUser.schoolId) as string;
 
     const [totalUsers, totalStudents, totalTeachers, activeModules] =
       await Promise.all([
@@ -251,7 +270,7 @@ export class SchoolsService {
   async findUsers(schoolId: string, currentUser: RequestUser) {
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      (currentUser.role !== UserRole.SCHOOL_ADMIN || currentUser.schoolId !== schoolId)
+      (currentUser.role !== UserRole.SCHOOL_ADMIN || (currentUser.activeSchoolId || currentUser.schoolId) as string !== schoolId)
     ) {
       throw new ForbiddenException("Only SUPER_ADMIN or the school's SCHOOL_ADMIN can view school users");
     }
@@ -268,7 +287,7 @@ export class SchoolsService {
   async createUser(schoolId: string, dto: CreateSchoolUserDto, currentUser: RequestUser) {
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      (currentUser.role !== UserRole.SCHOOL_ADMIN || currentUser.schoolId !== schoolId)
+      (currentUser.role !== UserRole.SCHOOL_ADMIN || (currentUser.activeSchoolId || currentUser.schoolId) as string !== schoolId)
     ) {
       throw new ForbiddenException("Only SUPER_ADMIN or the school's SCHOOL_ADMIN can create users");
     }
@@ -344,7 +363,7 @@ export class SchoolsService {
   ) {
     if (
       currentUser.role !== UserRole.SUPER_ADMIN &&
-      (currentUser.role !== UserRole.SCHOOL_ADMIN || currentUser.schoolId !== schoolId)
+      (currentUser.role !== UserRole.SCHOOL_ADMIN || (currentUser.activeSchoolId || currentUser.schoolId) as string !== schoolId)
     ) {
       throw new ForbiddenException("Only SUPER_ADMIN or the school's SCHOOL_ADMIN can update users");
     }
