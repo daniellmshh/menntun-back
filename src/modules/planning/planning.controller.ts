@@ -66,7 +66,7 @@ export class PlanningController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   @ApiOperation({ summary: "Obtener la lista de profesores de la escuela actual para asignación" })
   async getTeachersList(@CurrentUser() user: RequestUser) {
-    const data = await this.planningService.getTeachersList(user.schoolId);
+    const data = await this.planningService.getTeachersList((user.activeSchoolId || user.schoolId) as string);
     return successResponse(data);
   }
 

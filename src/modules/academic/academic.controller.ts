@@ -49,7 +49,7 @@ export class AcademicController {
     @CurrentUser() user: RequestUser,
     @Query("schoolId") schoolId?: string,
   ) {
-    const data = await this.academicService.findAllGrades(schoolId || user.schoolId, user);
+    const data = await this.academicService.findAllGrades(schoolId || (user.activeSchoolId || user.schoolId) as string, user);
     return successResponse(data);
   }
 
@@ -68,7 +68,7 @@ export class AcademicController {
     @CurrentUser() user: RequestUser,
     @Body() dto: CreateGradeDto,
   ) {
-    const data = await this.academicService.createGrade(user.schoolId, dto, user);
+    const data = await this.academicService.createGrade((user.activeSchoolId || user.schoolId) as string, dto, user);
     return successResponse(data);
   }
 
@@ -103,7 +103,7 @@ export class AcademicController {
     @CurrentUser() user: RequestUser,
     @Query("schoolId") schoolId?: string,
   ) {
-    const data = await this.academicService.findAllSchoolYears(schoolId || user.schoolId, user);
+    const data = await this.academicService.findAllSchoolYears(schoolId || (user.activeSchoolId || user.schoolId) as string, user);
     return successResponse(data);
   }
 
@@ -118,7 +118,7 @@ export class AcademicController {
   @Get("school-years/active")
   @ApiOperation({ summary: "Get active school year with periods" })
   async findActiveSchoolYear(@CurrentUser() user: RequestUser) {
-    const data = await this.academicService.findActiveSchoolYear(user.schoolId);
+    const data = await this.academicService.findActiveSchoolYear((user.activeSchoolId || user.schoolId) as string);
     return successResponse(data);
   }
 
@@ -225,7 +225,7 @@ export class AcademicController {
     @Query("schoolId") schoolId?: string,
     @Query("schoolYearId") schoolYearId?: string,
   ) {
-    const data = await this.academicService.findAllGroups(schoolId || user.schoolId, schoolYearId, user);
+    const data = await this.academicService.findAllGroups(schoolId || (user.activeSchoolId || user.schoolId) as string, schoolYearId, user);
     return successResponse(data);
   }
 
@@ -254,7 +254,7 @@ export class AcademicController {
     @CurrentUser() user: RequestUser,
     @Body() dto: CreateGroupDto,
   ) {
-    const data = await this.academicService.createGroup(user.schoolId, dto, user);
+    const data = await this.academicService.createGroup((user.activeSchoolId || user.schoolId) as string, dto, user);
     return successResponse(data);
   }
 
@@ -299,7 +299,7 @@ export class AcademicController {
   @Get("subjects")
   @ApiOperation({ summary: "List all subjects for school" })
   async findAllSubjects(@CurrentUser() user: RequestUser) {
-    const data = await this.academicService.findAllSubjects(user.schoolId);
+    const data = await this.academicService.findAllSubjects((user.activeSchoolId || user.schoolId) as string);
     return successResponse(data);
   }
 
@@ -309,7 +309,7 @@ export class AcademicController {
     @Param("id") id: string,
     @CurrentUser() user: RequestUser,
   ) {
-    const data = await this.academicService.findSubjectById(id, user.schoolId);
+    const data = await this.academicService.findSubjectById(id, (user.activeSchoolId || user.schoolId) as string);
     return successResponse(data);
   }
 
@@ -320,7 +320,7 @@ export class AcademicController {
     @CurrentUser() user: RequestUser,
     @Body() dto: CreateSubjectDto,
   ) {
-    const data = await this.academicService.createSubject(user.schoolId, dto, user);
+    const data = await this.academicService.createSubject((user.activeSchoolId || user.schoolId) as string, dto, user);
     return successResponse(data);
   }
 
@@ -332,7 +332,7 @@ export class AcademicController {
     @CurrentUser() user: RequestUser,
     @Body() dto: UpdateSubjectDto,
   ) {
-    const data = await this.academicService.updateSubject(id, user.schoolId, dto, user);
+    const data = await this.academicService.updateSubject(id, (user.activeSchoolId || user.schoolId) as string, dto, user);
     return successResponse(data);
   }
 
@@ -343,7 +343,7 @@ export class AcademicController {
     @Param("id") id: string,
     @CurrentUser() user: RequestUser,
   ) {
-    const data = await this.academicService.deleteSubject(id, user.schoolId, user);
+    const data = await this.academicService.deleteSubject(id, (user.activeSchoolId || user.schoolId) as string, user);
     return successResponse(data);
   }
 
@@ -355,7 +355,7 @@ export class AcademicController {
     @CurrentUser() user: RequestUser,
     @Body() dto: AssignSubjectTeacherDto,
   ) {
-    const data = await this.academicService.assignSubjectTeacher(id, user.schoolId, dto, user);
+    const data = await this.academicService.assignSubjectTeacher(id, (user.activeSchoolId || user.schoolId) as string, dto, user);
     return successResponse(data);
   }
 
@@ -368,7 +368,7 @@ export class AcademicController {
     @Param("gid") gid: string,
     @CurrentUser() user: RequestUser,
   ) {
-    const data = await this.academicService.removeSubjectTeacher(id, tid, gid, user.schoolId, user);
+    const data = await this.academicService.removeSubjectTeacher(id, tid, gid, (user.activeSchoolId || user.schoolId) as string, user);
     return successResponse(data);
   }
 }
