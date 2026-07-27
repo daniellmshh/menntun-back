@@ -386,11 +386,16 @@ export class AcademicService {
 
   async addPeriod(schoolYearId: string, dto: CreatePeriodDto, user: RequestUser) {
     this.requireAdmin(user);
-    await this.findSchoolYearById(schoolYearId, user);
-
-    if (new Date(dto.startDate) >= new Date(dto.endDate)) {
-      throw new BadRequestException("Period start date must be before end date");
-    }
+    const year = await this.findSchoolYearById(schoolYearId, user);
+    
+    const newPeriod = {
+      name: dto.name,
+      startDate: new Date(dto.startDate),
+      endDate: new Date(dto.endDate)
+    };
+    
+    const existingPeriods = await prisma.period.findMany({ where: { schoolYearId } });
+    this.validatePeriods(year.startDate, year.endDate, [...existingPeriods, newPeriod]);
 
     return prisma.period.create({
       data: {
@@ -405,12 +410,27 @@ export class AcademicService {
 
   async updatePeriod(schoolYearId: string, periodId: string, dto: UpdatePeriodDto, user: RequestUser) {
     this.requireAdmin(user);
-    await this.findSchoolYearById(schoolYearId, user);
-
+    const year = await this.findSchoolYearById(schoolYearId, user);
+    
     const period = await prisma.period.findUnique({ where: { id: periodId } });
     if (!period || period.schoolYearId !== schoolYearId) {
       throw new NotFoundException("Period not found");
     }
+
+    const existingPeriods = await prisma.period.findMany({ where: { schoolYearId } });
+    const updatedPeriods = existingPeriods.map(p => {
+      if (p.id === periodId) {
+        return {
+          id: p.id,
+          name: dto.name !== undefined ? dto.name : p.name,
+          startDate: dto.startDate !== undefined ? new Date(dto.startDate) : p.startDate,
+          endDate: dto.endDate !== undefined ? new Date(dto.endDate) : p.endDate
+        };
+      }
+      return p;
+    });
+
+    this.validatePeriods(year.startDate, year.endDate, updatedPeriods);
 
     return prisma.period.update({
       where: { id: periodId },
