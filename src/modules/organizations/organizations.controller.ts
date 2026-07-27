@@ -20,7 +20,7 @@ import { UserRole } from '@prisma/client';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { RequestUser } from '../../common/types';
+import { RequestUser, successResponse } from '../../common/types';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Organizations')
@@ -33,78 +33,87 @@ export class OrganizationsController {
   @Post()
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Crear nueva organización' })
-  create(@Body() createOrganizationDto: CreateOrganizationDto) {
-    return this.organizationsService.create(createOrganizationDto);
+  async create(@Body() createOrganizationDto: CreateOrganizationDto) {
+    const data = await this.organizationsService.create(createOrganizationDto);
+    return successResponse(data);
   }
 
   @Get()
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Obtener todas las organizaciones' })
-  findAll() {
-    return this.organizationsService.findAll();
+  async findAll() {
+    const data = await this.organizationsService.findAll();
+    return successResponse(data);
   }
 
   @Get(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN)
   @ApiOperation({ summary: 'Obtener organización por ID' })
-  findOne(@Param('id') id: string, @CurrentUser() currentUser: RequestUser) {
-    return this.organizationsService.findOne(id, currentUser);
+  async findOne(@Param('id') id: string, @CurrentUser() currentUser: RequestUser) {
+    const data = await this.organizationsService.findOne(id, currentUser);
+    return successResponse(data);
   }
 
   @Patch(':id')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Actualizar organización' })
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateOrganizationDto: UpdateOrganizationDto,
   ) {
-    return this.organizationsService.update(id, updateOrganizationDto);
+    const data = await this.organizationsService.update(id, updateOrganizationDto);
+    return successResponse(data);
   }
 
   @Post(':id/schools')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Asignar un plantel a la organización' })
-  assignSchool(
+  async assignSchool(
     @Param('id') id: string,
     @Body() assignSchoolDto: AssignSchoolDto,
   ) {
-    return this.organizationsService.assignSchool(id, assignSchoolDto);
+    const data = await this.organizationsService.assignSchool(id, assignSchoolDto);
+    return successResponse(data);
   }
 
   @Delete(':id/schools/:schoolId')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Remover un plantel de la organización' })
-  removeSchool(
+  async removeSchool(
     @Param('id') id: string,
     @Param('schoolId') schoolId: string,
   ) {
-    return this.organizationsService.removeSchool(id, schoolId);
+    const data = await this.organizationsService.removeSchool(id, schoolId);
+    return successResponse(data);
   }
 
   @Get(':id/schools')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN)
   @ApiOperation({ summary: 'Listar planteles de la organización' })
-  getSchools(@Param('id') id: string, @CurrentUser() currentUser: RequestUser) {
-    return this.organizationsService.getSchools(id, currentUser);
+  async getSchools(@Param('id') id: string, @CurrentUser() currentUser: RequestUser) {
+    const data = await this.organizationsService.getSchools(id, currentUser);
+    return successResponse(data);
   }
 
   @Post(':id/admins')
   @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Crear ORG_ADMIN para la organización' })
-  createAdmin(
+  async createAdmin(
     @Param('id') id: string,
     @Body() createOrgAdminDto: CreateOrgAdminDto,
   ) {
-    return this.organizationsService.createAdmin(id, createOrgAdminDto);
+    const data = await this.organizationsService.createAdmin(id, createOrgAdminDto);
+    return successResponse(data);
   }
 
   @Get(':id/reports/summary')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN)
   @ApiOperation({ summary: 'Resumen consolidado de la organización' })
-  getReportsSummary(
+  async getReportsSummary(
     @Param('id') id: string,
     @CurrentUser() currentUser: RequestUser,
   ) {
-    return this.organizationsService.getReportsSummary(id, currentUser);
+    const data = await this.organizationsService.getReportsSummary(id, currentUser);
+    return successResponse(data);
   }
 }
