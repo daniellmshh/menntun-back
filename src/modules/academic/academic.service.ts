@@ -114,14 +114,17 @@ export class AcademicService {
       ? (dto.schoolId || schoolId)
       : schoolId;
 
-    const existing = await prisma.grade.findUnique({
+    const level = dto.level || null;
+    const existing = await prisma.grade.findFirst({
       where: {
-        schoolId_name: { schoolId: targetSchoolId as string, name: dto.name },
+        schoolId: targetSchoolId as string,
+        name: dto.name,
+        level: level,
       },
     });
 
     if (existing) {
-      throw new ConflictException(`Grade "${dto.name}" already exists in this school`);
+      throw new ConflictException(`Grade "${dto.name}" with level "${level || 'N/A'}" already exists in this school`);
     }
 
     return prisma.grade.create({
@@ -138,14 +141,19 @@ export class AcademicService {
     this.requireAdmin(user);
     const grade = await this.findGradeOrFail(id, user);
 
-    if (dto.name) {
-      const existing = await prisma.grade.findUnique({
+    if (dto.name !== undefined || dto.level !== undefined) {
+      const newName = dto.name !== undefined ? dto.name : grade.name;
+      const newLevel = dto.level !== undefined ? dto.level : grade.level;
+
+      const existing = await prisma.grade.findFirst({
         where: {
-          schoolId_name: { schoolId: grade.schoolId, name: dto.name },
+          schoolId: grade.schoolId,
+          name: newName,
+          level: newLevel || null,
         },
       });
       if (existing && existing.id !== id) {
-        throw new ConflictException(`Grade "${dto.name}" already exists in this school`);
+        throw new ConflictException(`Grade "${newName}" with level "${newLevel || 'N/A'}" already exists in this school`);
       }
     }
 

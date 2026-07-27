@@ -115,8 +115,9 @@ async function main() {
   for (const g of gradeNames) {
     await prisma.grade.upsert({
       where: {
-        schoolId_name: {
+        schoolId_level_name: {
           schoolId: school.id,
+          level: g.level,
           name: g.name,
         },
       },
