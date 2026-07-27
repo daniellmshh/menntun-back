@@ -27,6 +27,33 @@ import { UserRole } from "@prisma/client";
 export class AcademicService {
   // ─── PRIVATE HELPERS ───────────────────────────────────────────────
 
+  
+  private validatePeriods(yearStart: Date, yearEnd: Date, periods: { id?: string, name: string, startDate: Date, endDate: Date }[]) {
+    for (const p of periods) {
+      if (p.startDate >= p.endDate) {
+        throw new BadRequestException(`Period "${p.name}" start date must be before its end date`);
+      }
+      
+      const pStart = new Date(p.startDate.getFullYear(), p.startDate.getMonth(), p.startDate.getDate()).getTime();
+      const pEnd = new Date(p.endDate.getFullYear(), p.endDate.getMonth(), p.endDate.getDate()).getTime();
+      const yStart = new Date(yearStart.getFullYear(), yearStart.getMonth(), yearStart.getDate()).getTime();
+      const yEnd = new Date(yearEnd.getFullYear(), yearEnd.getMonth(), yearEnd.getDate()).getTime();
+
+      if (pStart < yStart || pEnd > yEnd) {
+        throw new BadRequestException(`Period "${p.name}" dates must be within the school year dates`);
+      }
+    }
+
+    const sorted = [...periods].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const currentEnd = new Date(sorted[i].endDate.getFullYear(), sorted[i].endDate.getMonth(), sorted[i].endDate.getDate()).getTime();
+      const nextStart = new Date(sorted[i+1].startDate.getFullYear(), sorted[i+1].startDate.getMonth(), sorted[i+1].startDate.getDate()).getTime();
+      if (currentEnd > nextStart) {
+        throw new BadRequestException(`Periods "${sorted[i].name}" and "${sorted[i+1].name}" overlap`);
+      }
+    }
+  }
+
   private requireAdmin(user: RequestUser) {
     if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.SCHOOL_ADMIN) {
       throw new ForbiddenException("Only administrators can perform this action");
