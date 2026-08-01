@@ -2,12 +2,10 @@ import {
   Controller,
   Post,
   Get,
-  Body,
   Headers,
   UnauthorizedException,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { SyncUserDto } from "./auth.dto";
 import { Public } from "../../common/decorators/public.decorator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { RequestUser, successResponse } from "../../common/types";
@@ -18,15 +16,12 @@ export class AuthController {
 
   @Public()
   @Post("sync")
-  async sync(
-    @Headers("authorization") authHeader: string,
-    @Body() dto: SyncUserDto,
-  ) {
+  async sync(@Headers("authorization") authHeader: string) {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       throw new UnauthorizedException("Missing or invalid Authorization header");
     }
     const token = authHeader.split(" ")[1];
-    const user = await this.authService.syncUser(token, dto);
+    const user = await this.authService.syncUser(token);
     return successResponse(user);
   }
 
