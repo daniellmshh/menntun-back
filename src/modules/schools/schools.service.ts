@@ -35,6 +35,8 @@ const ALL_MODULES = [
   "enrollments",
   "scholarships",
   "reports",
+  "finances",
+  "documents",
 ];
 
 @Injectable()

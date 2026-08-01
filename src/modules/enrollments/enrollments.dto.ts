@@ -1,70 +1,59 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsDateString, ValidateNested, IsArray, IsNumber } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsDateString, ValidateNested, IsArray, IsNumber, IsBoolean } from "class-validator";
 import { Type } from "class-transformer";
-import { NivelEducativo, Gender } from "@prisma/client";
+import { NivelEducativo, Gender, TipoSolicitud } from "@prisma/client";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class DatosPadreDto {
-  @IsString()
-  @IsNotEmpty()
-  firstName: string;
+  @ApiProperty() @IsString() @IsNotEmpty() primerNombre: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() segundoNombre?: string;
+  @ApiProperty() @IsString() @IsNotEmpty() primerApellido: string;
+  @ApiProperty() @IsString() @IsNotEmpty() segundoApellido: string;
+  
+  // Legacy
+  @ApiPropertyOptional() @IsString() @IsOptional() firstName?: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() lastName?: string;
 
-  @IsString()
-  @IsNotEmpty()
-  lastName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  email: string;
-
-  @IsString()
-  @IsOptional()
-  phone?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  relationship: string;
+  @ApiProperty() @IsString() @IsNotEmpty() email: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() phone?: string;
+  @ApiProperty() @IsString() @IsNotEmpty() relationship: string;
+  
+  @ApiPropertyOptional() @IsString() @IsOptional() domicilio?: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() identificacionUrl?: string;
+  @ApiPropertyOptional() @IsBoolean() @IsOptional() isPrimary?: boolean;
 }
 
 export class CreateSolicitudDto {
-  @IsString()
+  @ApiPropertyOptional({ enum: TipoSolicitud })
+  @IsEnum(TipoSolicitud)
   @IsOptional()
-  schoolYearId?: string;
+  tipoSolicitud?: TipoSolicitud;
 
-  @IsString()
-  @IsOptional()
-  studentProfileId?: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() schoolYearId?: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() studentProfileId?: string;
 
-  @IsString()
-  @IsNotEmpty()
-  firstName: string;
+  @ApiProperty() @IsString() @IsNotEmpty() primerNombre: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() segundoNombre?: string;
+  @ApiProperty() @IsString() @IsNotEmpty() primerApellido: string;
+  @ApiProperty() @IsString() @IsNotEmpty() segundoApellido: string;
 
-  @IsString()
-  @IsNotEmpty()
-  lastName: string;
+  // Legacy fallback
+  @ApiPropertyOptional() @IsString() @IsOptional() firstName?: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() lastName?: string;
 
-  @IsDateString()
-  @IsOptional()
-  birthDate?: string;
+  @ApiPropertyOptional() @IsDateString() @IsOptional() birthDate?: string;
+  @ApiPropertyOptional({ enum: Gender }) @IsEnum(Gender) @IsOptional() gender?: Gender;
+  
+  @ApiPropertyOptional() @IsString() @IsOptional() curp?: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() nacionalidad?: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() bloodType?: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() address?: string;
+  @ApiPropertyOptional() @IsString() @IsOptional() escuelaProcedencia?: string;
 
-  @IsEnum(Gender)
-  @IsOptional()
-  gender?: Gender;
+  @ApiPropertyOptional({ enum: NivelEducativo }) @IsEnum(NivelEducativo) @IsOptional() nivelEducativo?: NivelEducativo;
+  @ApiProperty() @IsString() @IsNotEmpty() gradeId: string;
+  @ApiProperty() @IsString() @IsNotEmpty() groupId: string;
 
-  @IsString()
-  @IsOptional()
-  bloodType?: string;
-
-  @IsString()
-  @IsOptional()
-  address?: string;
-
-  @IsEnum(NivelEducativo)
-  @IsOptional()
-  nivelEducativo?: NivelEducativo;
-
-  @IsString()
-  @IsOptional()
-  gradoPropuesto?: string;
-
+  @ApiPropertyOptional({ type: [DatosPadreDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => DatosPadreDto)
@@ -72,31 +61,26 @@ export class CreateSolicitudDto {
   padres?: DatosPadreDto[];
 }
 
-export class ChangeDocumentoStatusDto {
+export class RejectSolicitudDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  estado: string; // PENDIENTE, RECIBIDO, VALIDADO, RECHAZADO
+  motivoRechazo: string;
+}
 
-  @IsString()
-  @IsOptional()
-  observaciones?: string;
+export class ChangeDocumentoStatusDto {
+  @ApiProperty() @IsString() @IsNotEmpty() estado: string; // PENDIENTE, RECIBIDO, VALIDADO, RECHAZADO
+  @ApiPropertyOptional() @IsString() @IsOptional() observaciones?: string;
 }
 
 export class CargoDto {
-  @IsString()
-  @IsNotEmpty()
-  concepto: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  monto: number;
-
-  @IsDateString()
-  @IsNotEmpty()
-  fechaVencimiento: string;
+  @ApiProperty() @IsString() @IsNotEmpty() concepto: string;
+  @ApiProperty() @IsNumber() @IsNotEmpty() monto: number;
+  @ApiProperty() @IsDateString() @IsNotEmpty() fechaVencimiento: string;
 }
 
 export class AprobarSolicitudDto {
+  @ApiPropertyOptional({ type: [CargoDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CargoDto)

@@ -58,14 +58,18 @@ export class EnrollmentsService {
           schoolId,
           schoolYearId: dto.schoolYearId,
           studentProfileId: dto.studentProfileId,
-          firstName: dto.firstName,
-          lastName: dto.lastName,
+          primerNombre: dto.primerNombre,
+          segundoNombre: dto.segundoNombre,
+          primerApellido: dto.primerApellido,
+          segundoApellido: dto.segundoApellido,
+          firstName: dto.firstName || dto.primerNombre,
+          lastName: dto.lastName || dto.primerApellido,
           birthDate: dto.birthDate ? new Date(dto.birthDate) : null,
           gender: dto.gender,
           bloodType: dto.bloodType,
           address: dto.address,
           nivelEducativo: dto.nivelEducativo,
-          gradoPropuesto: dto.gradoPropuesto,
+          gradeId: dto.gradeId,
           estado: SolicitudEstado.DRAFT,
         },
       });
@@ -74,11 +78,16 @@ export class EnrollmentsService {
         await tx.datosPadreSolicitud.createMany({
           data: dto.padres.map((p) => ({
             solicitudInscripcionId: solicitud.id,
-            firstName: p.firstName,
-            lastName: p.lastName,
+            primerNombre: p.primerNombre,
+            segundoNombre: p.segundoNombre,
+            primerApellido: p.primerApellido,
+            segundoApellido: p.segundoApellido,
+            firstName: p.firstName || p.primerNombre,
+            lastName: p.lastName || p.primerApellido,
             email: p.email,
             phone: p.phone,
             relationship: p.relationship,
+            isPrimary: p.isPrimary ?? false,
           })),
         });
       }
@@ -192,7 +201,9 @@ export class EnrollmentsService {
         if (!parentUser) {
           // Crear en Supabase (solo se invita)
           const { data: inviteData, error: inviteError } = await this.supabaseAdmin.auth.admin.inviteUserByEmail(p.email, {
-            data: { schoolId, role: UserRole.PARENT, firstName: p.firstName, lastName: p.lastName },
+            data: { schoolId, role: UserRole.PARENT, 
+            primerApellido: p.primerApellido,
+            firstName: p.firstName || p.primerNombre, lastName: p.lastName },
           });
 
           if (inviteError || !inviteData?.user) {
@@ -205,8 +216,8 @@ export class EnrollmentsService {
               email: p.email,
               schoolId,
               role: UserRole.PARENT,
-              firstName: p.firstName,
-              lastName: p.lastName,
+              firstName: p.firstName || p.primerNombre,
+              lastName: p.lastName || p.primerApellido,
               phone: p.phone,
             },
           });
@@ -238,9 +249,10 @@ export class EnrollmentsService {
 
       // 3. Generar Cargos
       if (dto.cargos && dto.cargos.length > 0) {
-        await tx.cargoInscripcion.createMany({
+        await tx.cargo.createMany({
           data: dto.cargos.map((c) => ({
             studentProfileId: finalStudentProfileId!,
+            schoolId,
             schoolYearId: solicitud.schoolYearId,
             solicitudInscripcionId: solicitud.id,
             concepto: c.concepto,
@@ -250,7 +262,24 @@ export class EnrollmentsService {
         });
       }
 
-      // 4. Cambiar estado a APROBADA
+      // 4. Inscribir alumno en el grupo si fue seleccionado
+      if (solicitud.groupId && finalStudentProfileId) {
+        // Verificar si ya está inscrito
+        const existingEnrollment = await tx.enrollment.findFirst({
+          where: { studentProfileId: finalStudentProfileId, groupId: solicitud.groupId }
+        });
+        
+        if (!existingEnrollment) {
+          await tx.enrollment.create({
+            data: {
+              studentProfileId: finalStudentProfileId,
+              groupId: solicitud.groupId,
+            }
+          });
+        }
+      }
+
+      // 5. Cambiar estado a APROBADA
       return tx.solicitudInscripcion.update({
         where: { id: solicitud.id },
         data: { estado: SolicitudEstado.APROBADA },
@@ -261,7 +290,7 @@ export class EnrollmentsService {
   async reject(id: string, schoolId: string, reason: string) {
     return this.prisma.solicitudInscripcion.updateMany({
       where: { id, schoolId },
-      data: { estado: SolicitudEstado.RECHAZADA, cancelationReason: reason },
+      data: { estado: SolicitudEstado.RECHAZADA, motivoRechazo: reason },
     });
   }
 
@@ -281,7 +310,7 @@ export class EnrollmentsService {
     return this.prisma.$transaction(async (tx) => {
       if (solicitud.studentProfileId) {
         // Eliminar cargos generados por esta solicitud
-        await tx.cargoInscripcion.deleteMany({
+        await tx.cargo.deleteMany({
           where: { solicitudInscripcionId: solicitud.id },
         });
 
@@ -308,8 +337,115 @@ export class EnrollmentsService {
 
       return tx.solicitudInscripcion.update({
         where: { id: solicitud.id },
-        data: { estado: SolicitudEstado.CANCELADA, cancelationReason: reason },
+        data: { estado: SolicitudEstado.CANCELADA, motivoRechazo: reason },
       });
     });
+  }
+
+  
+  async getCapacity(schoolId: string, schoolYearId?: string) {
+    return { capacity: 100 }; // mock implementation, will implement properly later
+  }
+
+  async getTiposDocumento(schoolId: string) {
+    return this.prisma.tipoDocumentoEscuela.findMany({ where: { schoolId } });
+  }
+
+  async createTipoDocumento(schoolId: string, dto: any) {
+    return this.prisma.tipoDocumentoEscuela.create({ data: { ...dto, schoolId } });
+  }
+
+  async updateTipoDocumento(id: string, schoolId: string, dto: any) {
+    return this.prisma.tipoDocumentoEscuela.update({ where: { id, schoolId }, data: dto });
+  }
+
+  async deleteTipoDocumento(id: string, schoolId: string) {
+    return this.prisma.tipoDocumentoEscuela.update({ where: { id, schoolId }, data: { activo: false } });
+  }
+
+// ─── DOCUMENTOS ────────────────────────────────────────
+
+  async getDocuments(solicitudId: string, schoolId: string) {
+    const solicitud = await this.prisma.solicitudInscripcion.findFirst({
+      where: { id: solicitudId, schoolId },
+      include: {
+        documentos: {
+          include: { tipoDocRef: true },
+        },
+      },
+    });
+
+    if (!solicitud) {
+      throw new NotFoundException("Solicitud no encontrada");
+    }
+
+    return solicitud.documentos;
+  }
+
+  async uploadDocument(solicitudId: string, schoolId: string, tipoDocumentoId: string, file: any) {
+    if (!file) {
+      throw new BadRequestException("Archivo no proporcionado");
+    }
+
+    const solicitud = await this.prisma.solicitudInscripcion.findFirst({
+      where: { id: solicitudId, schoolId },
+    });
+
+    if (!solicitud) {
+      throw new NotFoundException("Solicitud no encontrada");
+    }
+
+    const tipoDoc = await this.prisma.tipoDocumentoEscuela.findFirst({
+      where: { id: tipoDocumentoId, schoolId },
+    });
+
+    if (!tipoDoc) {
+      throw new NotFoundException("Tipo de documento no encontrado en esta escuela");
+    }
+
+    // Subir a Supabase Storage (bucket: enrollment-docs)
+    const fileExtension = file.originalname.split(".").pop();
+    const filePath = `${schoolId}/${solicitudId}/${tipoDocumentoId}_${Date.now()}.${fileExtension}`;
+
+    const { data: uploadData, error } = await this.supabaseAdmin.storage
+      .from("enrollment-docs")
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true,
+      });
+
+    if (error) {
+      throw new BadRequestException(`Error subiendo documento a Supabase: ${error.message}`);
+    }
+
+    const fileUrl = `${this.configService.get("supabase.url")}/storage/v1/object/public/enrollment-docs/${filePath}`;
+
+    // Crear o actualizar en DB
+    const existingDoc = await this.prisma.documentoSolicitud.findFirst({
+      where: {
+        solicitudInscripcionId: solicitudId,
+        tipoDocumentoId,
+      },
+    });
+
+    let documento;
+    if (existingDoc) {
+      documento = await this.prisma.documentoSolicitud.update({
+        where: { id: existingDoc.id },
+        data: { fileUrl, estado: "RECIBIDO" },
+      });
+    } else {
+      documento = await this.prisma.documentoSolicitud.create({
+        data: {
+          solicitudInscripcionId: solicitudId,
+          tipoDocumentoId,
+          tipoDocumento: tipoDoc.slug,
+          fileUrl,
+          estado: "RECIBIDO",
+        },
+      });
+    }
+
+    return documento;
   }
 }
