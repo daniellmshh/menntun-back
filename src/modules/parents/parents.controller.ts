@@ -18,7 +18,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { RequireModule } from "../../common/decorators/require-module.decorator";
 import { UserRole } from "@prisma/client";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { RequestUser } from "../../common/types";
+import { RequestUser, successResponse } from "../../common/types";
 
 @Controller("parents")
 @UseGuards(JwtAuthGuard, RolesGuard, ModulesGuard)
@@ -30,21 +30,21 @@ export class ParentsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async findAll(@CurrentUser() user: RequestUser, @Query("schoolId") schoolId?: string) {
     const data = await this.parentsService.findAll(user, schoolId);
-    return { data };
+    return successResponse(data);
   }
 
   @Get(":id")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async findOne(@Param("id") id: string, @CurrentUser() user: RequestUser) {
     const data = await this.parentsService.findOne(id, user);
-    return { data };
+    return successResponse(data);
   }
 
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async create(@CurrentUser() user: RequestUser, @Body() dto: CreateParentDto) {
     const data = await this.parentsService.create(dto, user);
-    return { data, message: "Padre/Tutor creado exitosamente e invitado por correo" };
+    return successResponse(data, { message: "Padre/Tutor creado exitosamente e invitado por correo" });
   }
 
   @Patch(":id")
@@ -55,14 +55,14 @@ export class ParentsController {
     @Body() dto: UpdateParentDto,
   ) {
     const data = await this.parentsService.update(id, dto, user);
-    return { data, message: "Información del padre actualizada" };
+    return successResponse(data, { message: "Información del padre actualizada" });
   }
 
   @Delete(":id")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async remove(@Param("id") id: string, @CurrentUser() user: RequestUser) {
     await this.parentsService.remove(id, user);
-    return { message: "Padre/Tutor eliminado del sistema" };
+    return successResponse(null, { message: "Padre/Tutor eliminado del sistema" });
   }
 
   @Post(":id/students")
@@ -73,7 +73,7 @@ export class ParentsController {
     @Body() dto: LinkStudentDto,
   ) {
     const data = await this.parentsService.linkStudent(id, dto, user);
-    return { data, message: "Alumno vinculado correctamente" };
+    return successResponse(data, { message: "Alumno vinculado correctamente" });
   }
 
   @Delete(":id/students/:studentId")
@@ -84,6 +84,6 @@ export class ParentsController {
     @CurrentUser() user: RequestUser,
   ) {
     await this.parentsService.unlinkStudent(id, studentId, user);
-    return { message: "Vinculación eliminada" };
+    return successResponse(null, { message: "Vinculación eliminada" });
   }
 }
