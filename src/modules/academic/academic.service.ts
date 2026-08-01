@@ -547,6 +547,9 @@ export class AcademicService {
     if (!year || year.schoolId !== targetSchoolId) {
       throw new NotFoundException("School year not found");
     }
+    if (!year.active) {
+      throw new BadRequestException("Cannot create group for a closed school year");
+    }
 
     const existing = await prisma.group.findUnique({
       where: {
@@ -580,7 +583,17 @@ export class AcademicService {
 
   async updateGroup(id: string, dto: UpdateGroupDto, user: RequestUser) {
     this.requireAdmin(user);
-    const group = await this.findGroupOrFail(id, user);
+    const group = await prisma.group.findUnique({
+      where: { id },
+      include: { schoolYear: true },
+    });
+    if (!group) throw new NotFoundException("Group not found");
+    if (group.schoolId !== user.schoolId && user.role !== UserRole.SUPER_ADMIN && user.activeSchoolId !== group.schoolId) {
+      throw new ForbiddenException("Access denied to this group");
+    }
+    if (!group.schoolYear.active) {
+      throw new BadRequestException("Cannot modify groups of a closed school year");
+    }
 
     if (dto.gradeId) {
       const targetGrade = await prisma.grade.findUnique({ where: { id: dto.gradeId } });
@@ -620,6 +633,35 @@ export class AcademicService {
         schoolYear: { select: { name: true, active: true } },
       },
     });
+  }
+
+  async removeGroup(id: string, user: RequestUser) {
+    this.requireAdmin(user);
+    const group = await prisma.group.findUnique({
+      where: { id },
+      include: { 
+        schoolYear: true,
+        _count: {
+          select: { enrollments: true }
+        }
+      },
+    });
+    
+    if (!group) throw new NotFoundException("Group not found");
+    if (group.schoolId !== user.schoolId && user.role !== UserRole.SUPER_ADMIN && user.activeSchoolId !== group.schoolId) {
+      throw new ForbiddenException("Access denied to this group");
+    }
+    
+    if (!group.schoolYear.active) {
+      throw new BadRequestException("Cannot delete groups of a closed school year");
+    }
+    
+    if (group._count.enrollments > 0) {
+      throw new BadRequestException("Cannot delete group because it has enrolled students");
+    }
+
+    await prisma.group.delete({ where: { id } });
+    return { message: "Group deleted successfully" };
   }
 
   async assignGroupTeacher(id: string, dto: AssignGroupTeacherDto, user: RequestUser) {
@@ -868,5 +910,291 @@ export class AcademicService {
     } catch {
       throw new NotFoundException("Assignment not found");
     }
+  }
+
+  // ─── GROUP SUBJECTS METHODS ─────────────────────────────────────────
+
+  async getGroupSubjects(groupId: string, user: RequestUser) {
+    await this.findGroupOrFail(groupId, user);
+
+    // Get all subjects of the school + whether they are assigned to this group (via subject_teachers)
+    const schoolId = (user.activeSchoolId || user.schoolId) as string;
+
+    const [allSubjects, groupAssignments] = await Promise.all([
+      prisma.subject.findMany({
+        where: { schoolId },
+        orderBy: { name: "asc" },
+      }),
+      prisma.subjectTeacher.findMany({
+        where: { groupId },
+        include: {
+          teacherProfile: {
+            include: {
+              user: { select: { firstName: true, lastName: true, email: true } },
+            },
+          },
+          subject: { select: { id: true, name: true, code: true } },
+        },
+      }),
+    ]);
+
+    const assignmentMap = new Map(groupAssignments.map((a) => [a.subjectId, a]));
+
+    return allSubjects.map((s) => {
+      const assignment = assignmentMap.get(s.id);
+      return {
+        ...s,
+        assigned: !!assignment,
+        assignmentId: assignment?.id ?? null,
+        teacher: assignment?.teacherProfile ?? null,
+      };
+    });
+  }
+
+  async assignGroupSubject(groupId: string, dto: { subjectId: string; teacherProfileId?: string }, user: RequestUser) {
+    this.requireAdmin(user);
+    const group = await this.findGroupOrFail(groupId, user);
+    const schoolId = group.schoolId;
+
+    await this.findSubjectOrFail(dto.subjectId, schoolId);
+
+    if (dto.teacherProfileId) {
+      const teacher = await prisma.teacherProfile.findUnique({
+        where: { id: dto.teacherProfileId },
+        include: { user: true },
+      });
+      if (!teacher || teacher.user.schoolId !== schoolId) {
+        throw new NotFoundException("Teacher profile not found");
+      }
+
+      const existing = await prisma.subjectTeacher.findUnique({
+        where: {
+          subjectId_teacherProfileId_groupId: {
+            subjectId: dto.subjectId,
+            teacherProfileId: dto.teacherProfileId,
+            groupId,
+          },
+        },
+      });
+      if (existing) {
+        throw new ConflictException("This teacher is already assigned to this subject for this group");
+      }
+
+      return prisma.subjectTeacher.create({
+        data: { subjectId: dto.subjectId, teacherProfileId: dto.teacherProfileId, groupId },
+        include: {
+          subject: true,
+          teacherProfile: { include: { user: { select: { firstName: true, lastName: true } } } },
+        },
+      });
+    }
+
+    // If no teacher provided, just check if already assigned (any teacher)
+    const anyExisting = await prisma.subjectTeacher.findFirst({
+      where: { subjectId: dto.subjectId, groupId },
+    });
+    if (anyExisting) {
+      throw new ConflictException("Subject is already assigned to this group");
+    }
+
+    // We need at least homeroom teacher to auto-assign
+    const homeroomTeacher = await prisma.groupTeacher.findFirst({
+      where: { groupId, isHomeroom: true },
+    });
+    if (!homeroomTeacher) {
+      throw new BadRequestException("Cannot assign subject without a teacher. Please assign a homeroom teacher to the group first, or specify a teacher for this subject.");
+    }
+
+    return prisma.subjectTeacher.create({
+      data: { subjectId: dto.subjectId, teacherProfileId: homeroomTeacher.teacherProfileId, groupId },
+      include: {
+        subject: true,
+        teacherProfile: { include: { user: { select: { firstName: true, lastName: true } } } },
+      },
+    });
+  }
+
+  async removeGroupSubject(groupId: string, subjectId: string, user: RequestUser) {
+    this.requireAdmin(user);
+    await this.findGroupOrFail(groupId, user);
+
+    const deleted = await prisma.subjectTeacher.deleteMany({
+      where: { groupId, subjectId },
+    });
+
+    if (deleted.count === 0) {
+      throw new NotFoundException("Subject assignment not found for this group");
+    }
+
+    return { message: "Subject removed from group successfully" };
+  }
+
+  async getGroupAvailableStudents(groupId: string, user: RequestUser) {
+    const group = await this.findGroupOrFail(groupId, user);
+    const schoolId = group.schoolId;
+
+    // Get all active students of the school
+    // "available" = not enrolled in any group of the same school_year
+    const alreadyEnrolledStudentIds = await prisma.enrollment.findMany({
+      where: {
+        group: { schoolYearId: group.schoolYearId, schoolId },
+        status: "ACTIVE",
+      },
+      select: { studentProfileId: true },
+    });
+
+    const enrolledIds = alreadyEnrolledStudentIds.map((e) => e.studentProfileId);
+
+    // Students in current group (already assigned)
+    const groupEnrollments = await prisma.enrollment.findMany({
+      where: { groupId, status: "ACTIVE" },
+      include: {
+        studentProfile: {
+          include: {
+            user: { select: { firstName: true, lastName: true, email: true } },
+          },
+        },
+      },
+    });
+
+    const available = await prisma.studentProfile.findMany({
+      where: {
+        user: { schoolId, active: true },
+        id: { notIn: enrolledIds },
+      },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
+      orderBy: [
+        { user: { lastName: "asc" } },
+        { user: { firstName: "asc" } },
+      ],
+    });
+
+    return {
+      assigned: groupEnrollments.map((e) => ({
+        enrollmentId: e.id,
+        studentProfileId: e.studentProfileId,
+        enrollmentNumber: e.studentProfile.enrollmentNumber,
+        firstName: e.studentProfile.user.firstName,
+        lastName: e.studentProfile.user.lastName,
+        email: e.studentProfile.user.email,
+      })),
+      available: available.map((s) => ({
+        studentProfileId: s.id,
+        enrollmentNumber: s.enrollmentNumber,
+        firstName: s.user.firstName,
+        lastName: s.user.lastName,
+        email: s.user.email,
+      })),
+    };
+  }
+
+  async bulkAssignStudents(
+    groupId: string,
+    students: { enrollmentNumber: string }[],
+    user: RequestUser,
+  ) {
+    this.requireAdmin(user);
+    const group = await this.findGroupOrFail(groupId, user);
+    const schoolId = group.schoolId;
+
+    const results: { enrollmentNumber: string; status: "success" | "error"; message: string }[] = [];
+
+    for (const { enrollmentNumber } of students) {
+      try {
+        const studentProfile = await prisma.studentProfile.findFirst({
+          where: {
+            enrollmentNumber,
+            user: { schoolId },
+          },
+          include: { user: true },
+        });
+
+        if (!studentProfile) {
+          results.push({ enrollmentNumber, status: "error", message: "Student not found" });
+          continue;
+        }
+
+        // Check max capacity
+        if (group.maxStudents) {
+          const currentCount = await prisma.enrollment.count({
+            where: { groupId, status: "ACTIVE" },
+          });
+          if (currentCount >= group.maxStudents) {
+            results.push({ enrollmentNumber, status: "error", message: "Group is at maximum capacity" });
+            continue;
+          }
+        }
+
+        // Check already enrolled in this group
+        const existingInGroup = await prisma.enrollment.findFirst({
+          where: { groupId, studentProfileId: studentProfile.id, status: "ACTIVE" },
+        });
+        if (existingInGroup) {
+          results.push({ enrollmentNumber, status: "error", message: "Already enrolled in this group" });
+          continue;
+        }
+
+        // Check if enrolled in another group of same year — move them
+        const existingOtherGroup = await prisma.enrollment.findFirst({
+          where: {
+            studentProfileId: studentProfile.id,
+            group: { schoolYearId: group.schoolYearId },
+            status: "ACTIVE",
+          },
+        });
+
+        if (existingOtherGroup) {
+          // Update to new group
+          await prisma.enrollment.update({
+            where: { id: existingOtherGroup.id },
+            data: { groupId },
+          });
+        } else {
+          await prisma.enrollment.create({
+            data: {
+              studentProfileId: studentProfile.id,
+              groupId,
+              status: "ACTIVE",
+              enrolledAt: new Date(),
+            },
+          });
+        }
+
+        results.push({
+          enrollmentNumber,
+          status: "success",
+          message: `${studentProfile.user.firstName} ${studentProfile.user.lastName} assigned successfully`,
+        });
+      } catch (err) {
+        results.push({ enrollmentNumber, status: "error", message: "Unexpected error processing this student" });
+      }
+    }
+
+    const successful = results.filter((r) => r.status === "success").length;
+    const failed = results.filter((r) => r.status === "error").length;
+
+    return { results, summary: { total: students.length, successful, failed } };
+  }
+
+  async removeStudentFromGroup(groupId: string, studentProfileId: string, user: RequestUser) {
+    this.requireAdmin(user);
+    await this.findGroupOrFail(groupId, user);
+
+    const enrollment = await prisma.enrollment.findFirst({
+      where: { groupId, studentProfileId, status: "ACTIVE" },
+    });
+
+    if (!enrollment) {
+      throw new NotFoundException("Student enrollment not found in this group");
+    }
+
+    await prisma.enrollment.update({
+      where: { id: enrollment.id },
+      data: { status: "INACTIVE" },
+    });
+
+    return { message: "Student removed from group successfully" };
   }
 }
