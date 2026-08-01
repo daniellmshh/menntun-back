@@ -25,6 +25,8 @@ import {
   UpdateSchoolYearDto,
   CreatePeriodDto,
   UpdatePeriodDto,
+  AssignGroupSubjectDto,
+  BulkAssignStudentsDto,
 } from "./academic.dto";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
@@ -270,6 +272,17 @@ export class AcademicController {
     return successResponse(data);
   }
 
+  @Delete("groups/:id")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
+  @ApiOperation({ summary: "Delete group (ADMIN only)" })
+  async removeGroup(
+    @Param("id") id: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    const data = await this.academicService.removeGroup(id, user);
+    return successResponse(data);
+  }
+
   @Post("groups/:id/teachers")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   @ApiOperation({ summary: "Assign teacher to group (ADMIN only)" })
@@ -369,6 +382,70 @@ export class AcademicController {
     @CurrentUser() user: RequestUser,
   ) {
     const data = await this.academicService.removeSubjectTeacher(id, tid, gid, (user.activeSchoolId || user.schoolId) as string, user);
+    return successResponse(data);
+  }
+
+  // ─── GROUP SUBJECTS ────────────────────────────────────────────────
+
+  @Get("groups/:id/subjects")
+  @ApiOperation({ summary: "Get all subjects for the school, with assignment status for the group" })
+  async getGroupSubjects(@Param("id") id: string, @CurrentUser() user: RequestUser) {
+    const data = await this.academicService.getGroupSubjects(id, user);
+    return successResponse(data);
+  }
+
+  @Post("groups/:id/subjects")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
+  @ApiOperation({ summary: "Assign a subject to a group (ADMIN only)" })
+  async assignGroupSubject(
+    @Param("id") id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: AssignGroupSubjectDto,
+  ) {
+    const data = await this.academicService.assignGroupSubject(id, dto, user);
+    return successResponse(data);
+  }
+
+  @Delete("groups/:id/subjects/:subjectId")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
+  @ApiOperation({ summary: "Remove a subject from a group (ADMIN only)" })
+  async removeGroupSubject(
+    @Param("id") id: string,
+    @Param("subjectId") subjectId: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    const data = await this.academicService.removeGroupSubject(id, subjectId, user);
+    return successResponse(data);
+  }
+
+  @Get("groups/:id/students")
+  @ApiOperation({ summary: "Get assigned and available students for a group" })
+  async getGroupAvailableStudents(@Param("id") id: string, @CurrentUser() user: RequestUser) {
+    const data = await this.academicService.getGroupAvailableStudents(id, user);
+    return successResponse(data);
+  }
+
+  @Post("groups/:id/students/bulk")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
+  @ApiOperation({ summary: "Bulk assign students to a group (ADMIN only)" })
+  async bulkAssignStudents(
+    @Param("id") id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: BulkAssignStudentsDto,
+  ) {
+    const data = await this.academicService.bulkAssignStudents(id, dto.students, user);
+    return successResponse(data);
+  }
+
+  @Delete("groups/:id/students/:studentProfileId")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
+  @ApiOperation({ summary: "Remove a student from a group (ADMIN only)" })
+  async removeStudentFromGroup(
+    @Param("id") id: string,
+    @Param("studentProfileId") studentProfileId: string,
+    @CurrentUser() user: RequestUser,
+  ) {
+    const data = await this.academicService.removeStudentFromGroup(id, studentProfileId, user);
     return successResponse(data);
   }
 }

@@ -215,3 +215,30 @@ export class AssignSubjectTeacherDto {
   @IsNotEmpty()
   groupId: string;
 }
+
+// ─── GROUP SUBJECTS DTOs ────────────────────────────────────────────
+
+export class AssignGroupSubjectDto {
+  @IsString()
+  @IsNotEmpty()
+  subjectId: string;
+
+  @IsString()
+  @IsOptional()
+  teacherProfileId?: string;
+}
+
+// ─── BULK ASSIGN DTOs ───────────────────────────────────────────────
+
+export class BulkStudentAssignItemDto {
+  @IsString()
+  @IsNotEmpty()
+  enrollmentNumber: string;
+}
+
+export class BulkAssignStudentsDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BulkStudentAssignItemDto)
+  students: BulkStudentAssignItemDto[];
+}

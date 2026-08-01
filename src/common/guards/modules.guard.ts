@@ -2,6 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Inject }
 import { Reflector } from "@nestjs/core";
 import { UserRole, PrismaClient } from "@prisma/client";
 import { REQUIRE_MODULE_KEY } from "../decorators/require-module.decorator";
+import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 import { RequestUser } from "../types";
 
 @Injectable()
@@ -12,28 +13,67 @@ export class ModulesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) {
+      return true;
+    }
+
     const requiredModule = this.reflector.getAllAndOverride<string>(REQUIRE_MODULE_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    if (!requiredModule) {
-      // If no module is required, allow access
-      return true;
-    }
-
     const request = context.switchToHttp().getRequest();
     const user: RequestUser = request.user;
 
-    const headerSchoolId = request.headers['x-active-school-id'];
-    const activeSchoolId = headerSchoolId || user?.schoolId;
-
-    if (user) {
-      user.activeSchoolId = activeSchoolId;
-    }
-
     if (!user) {
       throw new ForbiddenException("No user in request");
+    }
+
+    const headerSchoolId = request.headers["x-active-school-id"];
+    const requestedSchoolId =
+      typeof headerSchoolId === "string" && headerSchoolId.trim()
+        ? headerSchoolId.trim()
+        : undefined;
+
+    let activeSchoolId = user.schoolId;
+
+    if (requestedSchoolId && requestedSchoolId !== user.schoolId) {
+      if (user.role === UserRole.SUPER_ADMIN) {
+        const schoolExists = await this.prisma.school.findUnique({
+          where: { id: requestedSchoolId },
+          select: { id: true },
+        });
+        if (!schoolExists) {
+          throw new ForbiddenException("Requested school does not exist");
+        }
+      } else if (user.role === UserRole.ORG_ADMIN && user.organizationId) {
+        const organizationSchool = await this.prisma.school.findFirst({
+          where: {
+            id: requestedSchoolId,
+            organizationId: user.organizationId,
+          },
+          select: { id: true },
+        });
+        if (!organizationSchool) {
+          throw new ForbiddenException("Requested school is outside your organization");
+        }
+      } else {
+        throw new ForbiddenException("You cannot change the active school context");
+      }
+
+      activeSchoolId = requestedSchoolId;
+    }
+
+    user.activeSchoolId = activeSchoolId;
+
+    if (!requiredModule) {
+      // The active context is still validated and propagated to controllers
+      // such as /auth/me/modules that do not belong to a paid module.
+      return true;
     }
 
     // SUPER_ADMIN has access to all modules automatically

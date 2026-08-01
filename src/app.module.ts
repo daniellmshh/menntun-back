@@ -16,6 +16,8 @@ import { RolesGuard } from "./common/guards/roles.guard";
 import { ModulesGuard } from "./common/guards/modules.guard";
 import { AppController } from "./app.controller";
 import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { FinancesModule } from "./modules/finances/finances.module";
+import { ParentsModule } from "./modules/parents/parents.module";
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
     PlanningModule,
     EnrollmentsModule,
     OrganizationsModule,
+    FinancesModule,
+    ParentsModule,
   ],
   controllers: [AppController],
   providers: [

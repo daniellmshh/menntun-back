@@ -1,8 +1,7 @@
-import { Injectable, UnauthorizedException, Inject } from "@nestjs/common";
+import { Injectable, UnauthorizedException, ForbiddenException, Inject } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createClient } from "@supabase/supabase-js";
-import { PrismaClient, UserRole, SchoolType } from "@prisma/client";
-import { SyncUserDto } from "./auth.dto";
+import { PrismaClient, UserRole } from "@prisma/client";
 import { RequestUser } from "../../common/types";
 
 @Injectable()
@@ -23,7 +22,7 @@ export class AuthService {
     });
   }
 
-  async syncUser(token: string, dto: SyncUserDto) {
+  async syncUser(token: string) {
     // Use Supabase Admin API to validate the token — correctly handles ES256 JWTs
     const { data: authData, error: authError } = await this.supabaseAdmin.auth.getUser(token);
 
@@ -38,92 +37,47 @@ export class AuthService {
       throw new UnauthorizedException("Invalid token payload");
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      let user = await tx.user.findUnique({
-        where: { supabaseUid },
-      });
+    let user = await this.prisma.user.findUnique({
+      where: { supabaseUid },
+      include: {
+        teacherProfile: true,
+        studentProfile: true,
+        parentProfile: true,
+      },
+    });
 
-      if (user) {
-        user = await tx.user.update({
-          where: { id: user.id },
-          data: {
-            email,
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            phone: dto.phone ?? user.phone,
-            avatarUrl: dto.avatarUrl ?? user.avatarUrl,
-          },
-          include: {
-            teacherProfile: true,
-            studentProfile: true,
-            parentProfile: true,
-          },
-        });
-        let school: any = null;
-        if (user.schoolId) {
-          school = await tx.school.findUnique({
-            where: { id: user.schoolId },
-            select: { type: true, name: true },
-          });
-        }
+    // User provisioning is performed only by administrative enrollment flows.
+    // Never let a bearer token choose its own role or school through this endpoint.
+    if (!user || !user.active) {
+      throw new ForbiddenException(
+        "User is not provisioned or is inactive. Contact your school administrator.",
+      );
+    }
 
-        return {
-          ...user,
-          isIndependent: school?.type === 'INDEPENDENT',
-          schoolName: school?.name,
-        };
-      }
-
-      user = await tx.user.create({
-        data: {
-          supabaseUid,
-          email,
-          schoolId: dto.schoolId,
-          role: dto.role,
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          phone: dto.phone,
-          avatarUrl: dto.avatarUrl,
-        },
-      });
-
-      if (dto.role === "TEACHER") {
-        await tx.teacherProfile.create({
-          data: { userId: user.id },
-        });
-      } else if (dto.role === "STUDENT") {
-        await tx.studentProfile.create({
-          data: { userId: user.id },
-        });
-      } else if (dto.role === "PARENT" || dto.role === "TUTOR") {
-        await tx.parentProfile.create({
-          data: { userId: user.id },
-        });
-      }
-
-      const createdUser = await tx.user.findUnique({
+    if (user.email !== email) {
+      user = await this.prisma.user.update({
         where: { id: user.id },
+        data: { email },
         include: {
           teacherProfile: true,
           studentProfile: true,
           parentProfile: true,
         },
       });
+    }
 
-      let school: any = null;
-      if (dto.schoolId) {
-        school = await tx.school.findUnique({
-          where: { id: dto.schoolId },
+    const school = user.schoolId
+      ? await this.prisma.school.findUnique({
+          where: { id: user.schoolId },
           select: { type: true, name: true },
-        });
-      }
+        })
+      : null;
 
-      return {
-        ...createdUser,
-        isIndependent: school?.type === 'INDEPENDENT',
-        schoolName: school?.name,
-      };
-    });
+    return {
+      ...user,
+      isIndependent: school?.type === "INDEPENDENT",
+      schoolName: school?.name,
+    };
   }
 
   async getMe(userId: string) {
