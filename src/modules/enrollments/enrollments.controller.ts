@@ -21,7 +21,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { RequireModule } from "../../common/decorators/require-module.decorator";
 import { UserRole } from "@prisma/client";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { RequestUser } from "../../common/types";
+import { RequestUser, successResponse } from "../../common/types";
 
 @Controller("enrollments")
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -36,7 +36,7 @@ export class EnrollmentsController {
     @Query("schoolId") schoolId?: string,
   ) {
     const data = await this.enrollmentsService.findAll(user, schoolId as string);
-    return { data };
+    return successResponse(data);
   }
 
   @Get("capacity")
@@ -47,7 +47,7 @@ export class EnrollmentsController {
   ) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.enrollmentsService.getCapacity(schoolId, schoolYearId);
-    return { data };
+    return successResponse(data);
   }
 
   // ─── TIPOS DE DOCUMENTO ───────────────────────────────
@@ -58,7 +58,7 @@ export class EnrollmentsController {
   async getTiposDocumento(@CurrentUser() user: RequestUser) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.enrollmentsService.getTiposDocumento(schoolId);
-    return { data };
+    return successResponse(data);
   }
 
   @Post("tipos-documento")
@@ -70,7 +70,7 @@ export class EnrollmentsController {
   ) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.enrollmentsService.createTipoDocumento(schoolId, dto);
-    return { data, message: "Tipo de documento creado" };
+    return successResponse(data, { message: "Tipo de documento creado" });
   }
 
   @Patch("tipos-documento/:id")
@@ -83,7 +83,7 @@ export class EnrollmentsController {
   ) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.enrollmentsService.updateTipoDocumento(id, schoolId, dto);
-    return { data, message: "Tipo de documento actualizado" };
+    return successResponse(data, { message: "Tipo de documento actualizado" });
   }
 
   @Delete("tipos-documento/:id")
@@ -92,7 +92,7 @@ export class EnrollmentsController {
   async deleteTipoDocumento(@Param("id") id: string, @CurrentUser() user: RequestUser) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.enrollmentsService.deleteTipoDocumento(id, schoolId);
-    return { data, message: "Tipo de documento eliminado" };
+    return successResponse(data, { message: "Tipo de documento eliminado" });
   }
 
   // ─── SOLICITUDES ───────────────────────────────────────
@@ -108,31 +108,33 @@ export class EnrollmentsController {
     // En este caso forzamos al schoolId del admin (asumiendo que SUPER_ADMIN opera bajo contexto si no manda otro)
     const schoolId = (user.activeSchoolId || user.schoolId) as string; 
     const data = await this.enrollmentsService.createDraft(dto, schoolId as string);
-    return { data };
+    return successResponse(data);
   }
 
   @Patch(":id/submit")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async submit(@Param("id") id: string, @CurrentUser() user: RequestUser) {
     const data = await this.enrollmentsService.submit(id, (user.activeSchoolId || user.schoolId) as string as string);
-    return { data, message: "Solicitud enviada" };
+    return successResponse(data, { message: "Solicitud enviada" });
   }
 
   @Patch(":id/in-review")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async markInReview(@Param("id") id: string, @CurrentUser() user: RequestUser) {
     const data = await this.enrollmentsService.markInReview(id, (user.activeSchoolId || user.schoolId) as string as string);
-    return { data, message: "Solicitud en revisión" };
+    return successResponse(data, { message: "Solicitud en revisión" });
   }
 
   @Patch("documents/:docId")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async updateDocumento(
     @Param("docId") docId: string,
+    @CurrentUser() user: RequestUser,
     @Body() dto: ChangeDocumentoStatusDto,
   ) {
-    const data = await this.enrollmentsService.updateDocumento(docId, dto);
-    return { data, message: "Estado de documento actualizado" };
+    const schoolId = (user.activeSchoolId || user.schoolId) as string;
+    const data = await this.enrollmentsService.updateDocumento(docId, schoolId, dto);
+    return successResponse(data, { message: "Estado de documento actualizado" });
   }
 
   @Post(":id/approve")
@@ -143,7 +145,7 @@ export class EnrollmentsController {
     @Body() dto: AprobarSolicitudDto,
   ) {
     const data = await this.enrollmentsService.approve(id, (user.activeSchoolId || user.schoolId) as string, dto);
-    return { data, message: "Solicitud aprobada y estudiante matriculado" };
+    return successResponse(data, { message: "Solicitud aprobada y estudiante matriculado" });
   }
 
   @Patch(":id/reject")
@@ -154,7 +156,7 @@ export class EnrollmentsController {
     @Body() dto: RejectSolicitudDto,
   ) {
     const data = await this.enrollmentsService.reject(id, (user.activeSchoolId || user.schoolId) as string, dto.motivoRechazo);
-    return { data, message: "Solicitud rechazada" };
+    return successResponse(data, { message: "Solicitud rechazada" });
   }
 
   @Delete(":id/cancel")
@@ -165,7 +167,7 @@ export class EnrollmentsController {
     @Body("reason") reason: string,
   ) {
     const data = await this.enrollmentsService.cancel(id, (user.activeSchoolId || user.schoolId) as string, reason);
-    return { data, message: "Inscripción cancelada y reversada" };
+    return successResponse(data, { message: "Inscripción cancelada y reversada" });
   }
 
   @Get(":id/documents")
@@ -173,7 +175,7 @@ export class EnrollmentsController {
   async getDocuments(@Param("id") id: string, @CurrentUser() user: RequestUser) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.enrollmentsService.getDocuments(id, schoolId);
-    return { data };
+    return successResponse(data);
   }
 
   @Post(":id/documents")
@@ -187,6 +189,6 @@ export class EnrollmentsController {
   ) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.enrollmentsService.uploadDocument(id, schoolId, tipoDocumentoId, file);
-    return { data, message: "Documento subido correctamente" };
+    return successResponse(data, { message: "Documento subido correctamente" });
   }
 }
