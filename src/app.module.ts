@@ -18,6 +18,7 @@ import { AppController } from "./app.controller";
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { FinancesModule } from "./modules/finances/finances.module";
 import { ParentsModule } from "./modules/parents/parents.module";
+import { GradesModule } from "./modules/grades/grades.module";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ParentsModule } from "./modules/parents/parents.module";
     OrganizationsModule,
     FinancesModule,
     ParentsModule,
+    GradesModule,
   ],
   controllers: [AppController],
   providers: [
