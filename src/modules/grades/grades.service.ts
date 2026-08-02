@@ -73,6 +73,13 @@ export class GradesService {
     return { group, subject, period };
   }
 
+  private assertEvaluationDateWithinPeriod(evaluationDate: Date, period: { startDate: Date; endDate: Date }) {
+    const date = evaluationDate.getTime();
+    if (date < period.startDate.getTime() || date > period.endDate.getTime()) {
+      throw new BadRequestException("La fecha de evaluación debe estar dentro del período seleccionado");
+    }
+  }
+
   async getCategories(user: RequestUser) {
     return prisma.evaluationCategory.findMany({
       where: { schoolId: this.schoolId(user) },
@@ -164,7 +171,8 @@ export class GradesService {
   async createEvaluation(user: RequestUser, dto: CreateEvaluationDto) {
     const schoolId = this.schoolId(user);
     const teacherProfileId = await this.teacherProfileId(user, dto.teacherProfileId);
-    await this.assertAcademicContext(schoolId, dto.groupId, dto.subjectId, dto.periodId);
+    const context = await this.assertAcademicContext(schoolId, dto.groupId, dto.subjectId, dto.periodId);
+    this.assertEvaluationDateWithinPeriod(new Date(dto.evaluationDate), context.period);
     await this.assertTeacherAssignment(user, teacherProfileId, dto.groupId, dto.subjectId);
     const category = await prisma.evaluationCategory.findFirst({ where: { id: dto.categoryId, schoolId, active: true } });
     if (!category) throw new NotFoundException("Categoría activa no encontrada");
@@ -201,7 +209,23 @@ export class GradesService {
       const category = await prisma.evaluationCategory.findFirst({ where: { id: dto.categoryId, schoolId: evaluation.schoolId, active: true } });
       if (!category) throw new NotFoundException("Categoría activa no encontrada");
     }
+    if (dto.evaluationDate) this.assertEvaluationDateWithinPeriod(new Date(dto.evaluationDate), evaluation.period);
     return prisma.evaluation.update({ where: { id }, data: { ...dto, ...(dto.evaluationDate ? { evaluationDate: new Date(dto.evaluationDate) } : {}) }, include: { category: true } });
+  }
+
+  async getAssignableTeachers(user: RequestUser, groupId: string, subjectId: string) {
+    this.requireAdmin(user);
+    const schoolId = this.schoolId(user);
+    await this.assertAcademicContext(schoolId, groupId, subjectId, (await prisma.group.findFirstOrThrow({ where: { id: groupId, schoolId }, select: { schoolYear: { select: { periods: { select: { id: true }, take: 1 } } } } })).schoolYear.periods[0]?.id ?? "");
+    return prisma.subjectTeacher.findMany({ where: { groupId, subjectId, teacherProfile: { user: { schoolId } } }, select: { teacherProfile: { select: { id: true, user: { select: { firstName: true, lastName: true } } } } } });
+  }
+
+  async syncEvaluationStudents(id: string, user: RequestUser) {
+    const evaluation = await this.getEvaluation(id, user);
+    if (evaluation.status === EvaluationStatus.CLOSED) throw new BadRequestException("Una evaluación cerrada no puede modificar su lista de alumnos");
+    const students = await prisma.enrollment.findMany({ where: { groupId: evaluation.groupId, status: "ACTIVE" }, select: { studentProfileId: true } });
+    await prisma.evaluationScore.createMany({ data: students.map(({ studentProfileId }) => ({ evaluationId: id, studentProfileId })), skipDuplicates: true });
+    return this.getEvaluation(id, user);
   }
 
   async upsertScores(id: string, user: RequestUser, dto: UpsertEvaluationScoresDto) {

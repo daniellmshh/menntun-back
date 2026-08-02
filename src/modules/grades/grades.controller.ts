@@ -54,6 +54,10 @@ export class GradesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER)
   async createEvaluation(@CurrentUser() user: RequestUser, @Body() dto: CreateEvaluationDto) { return successResponse(await this.gradesService.createEvaluation(user, dto)); }
 
+  @Get("assignments/teachers")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
+  async getAssignableTeachers(@CurrentUser() user: RequestUser, @Query("groupId") groupId: string, @Query("subjectId") subjectId: string) { return successResponse(await this.gradesService.getAssignableTeachers(user, groupId, subjectId)); }
+
   @Get("evaluations/:id")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER)
   async getEvaluation(@Param("id") id: string, @CurrentUser() user: RequestUser) { return successResponse(await this.gradesService.getEvaluation(id, user)); }
@@ -65,6 +69,10 @@ export class GradesController {
   @Post("evaluations/:id/scores")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER)
   async upsertScores(@Param("id") id: string, @CurrentUser() user: RequestUser, @Body() dto: UpsertEvaluationScoresDto) { return successResponse(await this.gradesService.upsertScores(id, user, dto)); }
+
+  @Post("evaluations/:id/sync-students")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER)
+  async syncEvaluationStudents(@Param("id") id: string, @CurrentUser() user: RequestUser) { return successResponse(await this.gradesService.syncEvaluationStudents(id, user)); }
 
   @Get("me/students")
   @Roles(UserRole.PARENT, UserRole.TUTOR, UserRole.STUDENT)
