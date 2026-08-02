@@ -54,6 +54,24 @@ enum EvaluationType {
   OTHER
 }
 
+enum EvaluationStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum EvaluationScoreStatus {
+  PENDING
+  GRADED
+  EXEMPT
+  MISSING
+}
+
+enum EvaluationCalculationMode {
+  WEIGHTED_CATEGORIES
+  AVERAGE
+}
+
 enum NoticeAudience {
   ALL
   PARENTS
@@ -175,18 +193,18 @@ model Organization {
 // ─── SCHOOLS ───────────────────────────
 
 model School {
-  id        String   @id @default(uuid())
-  name      String
-  code      String   @unique
-  address   String?
-  phone     String?
-  email     String?
-  logoUrl        String?      @map("logo_url")
-  active         Boolean      @default(true)
-  type           SchoolType   @default(SCHOOL)
-  organizationId String?      @map("organization_id")
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
+  id             String     @id @default(uuid())
+  name           String
+  code           String     @unique
+  address        String?
+  phone          String?
+  email          String?
+  logoUrl        String?    @map("logo_url")
+  active         Boolean    @default(true)
+  type           SchoolType @default(SCHOOL)
+  organizationId String?    @map("organization_id")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
 
   organization           Organization?          @relation(fields: [organizationId], references: [id])
   users                  User[]
@@ -200,6 +218,9 @@ model School {
   tiposDocumento         TipoDocumentoEscuela[]
   catalogoCargos         CatalogoCargo[]
   cargos                 Cargo[]
+  evaluationCategories   EvaluationCategory[]
+  gradingPolicies        GradingPolicy[]
+  evaluations            Evaluation[]
 
   @@map("schools")
 }
@@ -247,8 +268,10 @@ model Period {
   order        Int
   createdAt    DateTime @default(now()) @map("created_at")
 
-  schoolYear SchoolYear    @relation(fields: [schoolYearId], references: [id])
-  grades     GradeRecord[]
+  schoolYear      SchoolYear      @relation(fields: [schoolYearId], references: [id])
+  grades          GradeRecord[]
+  gradingPolicies GradingPolicy[]
+  evaluations     Evaluation[]
 
   @@map("periods")
 }
@@ -293,12 +316,14 @@ model TeacherProfile {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  user               User             @relation(fields: [userId], references: [id])
+  user               User              @relation(fields: [userId], references: [id])
   groupAssignments   GroupTeacher[]
   subjectAssignments SubjectTeacher[]
   attendanceRecords  Attendance[]
   tasks              Task[]
   plannings          Planning[]
+  createdEvaluations Evaluation[]      @relation("EvaluationCreator")
+  gradedScores       EvaluationScore[] @relation("EvaluationScoreGrader")
 
   @@map("teacher_profiles")
 }
@@ -322,6 +347,7 @@ model StudentProfile {
   enrollments            Enrollment[]
   attendances            Attendance[]
   gradeRecords           GradeRecord[]
+  evaluationScores       EvaluationScore[]
   taskDeliveries         TaskDelivery[]
   parentLinks            ParentStudent[]
   scholarships           Scholarship[]
@@ -394,6 +420,8 @@ model Group {
   attendances        Attendance[]
   tasks              Task[]
   plannings          Planning[]
+  gradingPolicies    GradingPolicy[]
+  evaluations        Evaluation[]
 
   @@unique([schoolId, gradeId, schoolYearId, name])
   @@map("groups")
@@ -420,11 +448,13 @@ model Subject {
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
 
-  school    School           @relation(fields: [schoolId], references: [id])
-  teachers  SubjectTeacher[]
-  tasks     Task[]
-  grades    GradeRecord[]
-  plannings Planning[]
+  school          School           @relation(fields: [schoolId], references: [id])
+  teachers        SubjectTeacher[]
+  tasks           Task[]
+  grades          GradeRecord[]
+  plannings       Planning[]
+  gradingPolicies GradingPolicy[]
+  evaluations     Evaluation[]
 
   @@unique([schoolId, name])
   @@map("subjects")
@@ -501,6 +531,116 @@ model GradeRecord {
   @@map("grade_records")
 }
 
+// ─── EVALUATIONS ──────────────────────
+
+model EvaluationCategory {
+  id            String   @id @default(uuid())
+  schoolId      String   @map("school_id")
+  name          String
+  description   String?
+  defaultWeight Decimal? @map("default_weight") @db.Decimal(5, 2)
+  active        Boolean  @default(true)
+  order         Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  school        School                @relation(fields: [schoolId], references: [id])
+  evaluations   Evaluation[]
+  policyWeights GradingPolicyWeight[]
+
+  @@unique([schoolId, name])
+  @@index([schoolId, active, order])
+  @@map("evaluation_categories")
+}
+
+model GradingPolicy {
+  id              String                    @id @default(uuid())
+  schoolId        String                    @map("school_id")
+  groupId         String                    @map("group_id")
+  subjectId       String                    @map("subject_id")
+  periodId        String                    @map("period_id")
+  calculationMode EvaluationCalculationMode @default(WEIGHTED_CATEGORIES) @map("calculation_mode")
+  scaleMax        Decimal                   @default(10) @map("scale_max") @db.Decimal(5, 2)
+  passingScore    Decimal                   @default(6) @map("passing_score") @db.Decimal(5, 2)
+  closedAt        DateTime?                 @map("closed_at")
+  finalSnapshots  Json?                     @map("final_snapshots")
+  createdAt       DateTime                  @default(now()) @map("created_at")
+  updatedAt       DateTime                  @updatedAt @map("updated_at")
+
+  school  School                @relation(fields: [schoolId], references: [id])
+  group   Group                 @relation(fields: [groupId], references: [id])
+  subject Subject               @relation(fields: [subjectId], references: [id])
+  period  Period                @relation(fields: [periodId], references: [id])
+  weights GradingPolicyWeight[]
+
+  @@unique([groupId, subjectId, periodId])
+  @@index([schoolId, periodId])
+  @@map("grading_policies")
+}
+
+model GradingPolicyWeight {
+  id         String  @id @default(uuid())
+  policyId   String  @map("policy_id")
+  categoryId String  @map("category_id")
+  weight     Decimal @db.Decimal(5, 2)
+
+  policy   GradingPolicy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  category EvaluationCategory @relation(fields: [categoryId], references: [id])
+
+  @@unique([policyId, categoryId])
+  @@map("grading_policy_weights")
+}
+
+model Evaluation {
+  id               String           @id @default(uuid())
+  schoolId         String           @map("school_id")
+  groupId          String           @map("group_id")
+  subjectId        String           @map("subject_id")
+  periodId         String           @map("period_id")
+  categoryId       String           @map("category_id")
+  teacherProfileId String           @map("teacher_profile_id")
+  title            String
+  description      String?
+  evaluationDate   DateTime         @map("evaluation_date") @db.Date
+  maxScore         Decimal          @default(10) @map("max_score") @db.Decimal(5, 2)
+  status           EvaluationStatus @default(DRAFT)
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  school         School             @relation(fields: [schoolId], references: [id])
+  group          Group              @relation(fields: [groupId], references: [id])
+  subject        Subject            @relation(fields: [subjectId], references: [id])
+  period         Period             @relation(fields: [periodId], references: [id])
+  category       EvaluationCategory @relation(fields: [categoryId], references: [id])
+  teacherProfile TeacherProfile     @relation("EvaluationCreator", fields: [teacherProfileId], references: [id])
+  scores         EvaluationScore[]
+
+  @@index([schoolId, groupId, periodId])
+  @@index([groupId, subjectId, periodId])
+  @@map("evaluations")
+}
+
+model EvaluationScore {
+  id                       String                @id @default(uuid())
+  evaluationId             String                @map("evaluation_id")
+  studentProfileId         String                @map("student_profile_id")
+  score                    Decimal?              @db.Decimal(5, 2)
+  status                   EvaluationScoreStatus @default(PENDING)
+  feedback                 String?
+  gradedAt                 DateTime?             @map("graded_at")
+  gradedByTeacherProfileId String?               @map("graded_by_teacher_profile_id")
+  createdAt                DateTime              @default(now()) @map("created_at")
+  updatedAt                DateTime              @updatedAt @map("updated_at")
+
+  evaluation      Evaluation      @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  studentProfile  StudentProfile  @relation(fields: [studentProfileId], references: [id])
+  gradedByTeacher TeacherProfile? @relation("EvaluationScoreGrader", fields: [gradedByTeacherProfileId], references: [id])
+
+  @@unique([evaluationId, studentProfileId])
+  @@index([studentProfileId])
+  @@map("evaluation_scores")
+}
+
 // ─── TASKS ─────────────────────────────
 
 model Task {
@@ -561,43 +701,43 @@ model Notice {
 // ─── PLANNING ──────────────────────────
 
 model Planning {
-  id                   String            @id @default(uuid())
-  teacherProfileId     String            @map("teacher_profile_id")
-  groupId              String?           @map("group_id")
-  subjectId            String?           @map("subject_id")
-  isStandalone         Boolean           @default(false) @map("is_standalone")
-  standaloneLevel      NivelEducativo?   @map("standalone_level")
-  standaloneGradeOrder Int?              @map("standalone_grade_order")
-  modalidad            PlanningModalidad
-  campoFormativo       CampoFormativo
-  ejesArticuladores    EjeArticulador[]
-  contextoInicial      String            @map("contexto_inicial")
+  id                    String            @id @default(uuid())
+  teacherProfileId      String            @map("teacher_profile_id")
+  groupId               String?           @map("group_id")
+  subjectId             String?           @map("subject_id")
+  isStandalone          Boolean           @default(false) @map("is_standalone")
+  standaloneLevel       NivelEducativo?   @map("standalone_level")
+  standaloneGradeOrder  Int?              @map("standalone_grade_order")
+  modalidad             PlanningModalidad
+  campoFormativo        CampoFormativo
+  ejesArticuladores     EjeArticulador[]
+  contextoInicial       String            @map("contexto_inicial")
   // Legacy fields (kept for backward compat, now also stored in fundamentacion)
-  contenidos           String            @default("")
-  pda                  String            @default("") @map("pda")
-  relevanciaSocial     String            @default("") @map("relevancia_social")
-  produccionSugerida   String            @default("") @map("produccion_sugerida")
+  contenidos            String            @default("")
+  pda                   String            @default("") @map("pda")
+  relevanciaSocial      String            @default("") @map("relevancia_social")
+  produccionSugerida    String            @default("") @map("produccion_sugerida")
   // Legacy fases (kept, but matrizDidactica is the new format)
-  fases                Json              @default("[]")
-  recursos             Json?
-  title                String
-  content              String            @default("")
-  weekStart            DateTime          @map("week_start") @db.Date
-  status               PlanningStatus    @default(DRAFT)
+  fases                 Json              @default("[]")
+  recursos              Json?
+  title                 String
+  content               String            @default("")
+  weekStart             DateTime          @map("week_start") @db.Date
+  status                PlanningStatus    @default(DRAFT)
   // New Sara format fields
-  periodoProyecto      String?           @map("periodo_proyecto")
-  startDate            DateTime?         @map("start_date") @db.Date
-  endDate              DateTime?         @map("end_date") @db.Date
-  activitiesPerDay     Int?              @default(1) @map("activities_per_day")
-  problematica         String?
-  proposito            String?
-  instrumentoEvaluacion String[]         @default([]) @map("instrumento_evaluacion")
-  ajustesRazonables    String[]          @default([]) @map("ajustes_razonables")
-  actividadesPmc       String[]          @default([]) @map("actividades_pmc")
-  fundamentacion       Json?             // [{campoFormativo, nombreCampo, contenido, pda}]
-  matrizDidactica      Json?             @map("matriz_didactica") // [{momento, filas:[{actividades,campo_pda,organizacion,recursos,evaluacion}]}]
-  createdAt            DateTime          @default(now()) @map("created_at")
-  updatedAt            DateTime          @updatedAt @map("updated_at")
+  periodoProyecto       String?           @map("periodo_proyecto")
+  startDate             DateTime?         @map("start_date") @db.Date
+  endDate               DateTime?         @map("end_date") @db.Date
+  activitiesPerDay      Int?              @default(1) @map("activities_per_day")
+  problematica          String?
+  proposito             String?
+  instrumentoEvaluacion String[]          @default([]) @map("instrumento_evaluacion")
+  ajustesRazonables     String[]          @default([]) @map("ajustes_razonables")
+  actividadesPmc        String[]          @default([]) @map("actividades_pmc")
+  fundamentacion        Json? // [{campoFormativo, nombreCampo, contenido, pda}]
+  matrizDidactica       Json?             @map("matriz_didactica") // [{momento, filas:[{actividades,campo_pda,organizacion,recursos,evaluacion}]}]
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
 
   teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id])
   group          Group?         @relation(fields: [groupId], references: [id])
@@ -628,40 +768,40 @@ model Scholarship {
 // ─── ENROLLMENTS MODULE ────────────────
 
 model SolicitudInscripcion {
-  id               String         @id @default(uuid())
-  schoolId         String         @map("school_id")
-  schoolYearId     String?        @map("school_year_id")
-  studentProfileId String?        @map("student_profile_id")
+  id               String  @id @default(uuid())
+  schoolId         String  @map("school_id")
+  schoolYearId     String? @map("school_year_id")
+  studentProfileId String? @map("student_profile_id")
 
-  tipoSolicitud   TipoSolicitud @default(INSCRIPCION) @map("tipo_solicitud")
+  tipoSolicitud TipoSolicitud @default(INSCRIPCION) @map("tipo_solicitud")
 
   // Nombre completo separado
-  primerNombre    String   @map("primer_nombre")
-  segundoNombre   String?  @map("segundo_nombre")
-  primerApellido  String   @map("primer_apellido")
-  segundoApellido String?  @map("segundo_apellido")
+  primerNombre    String  @map("primer_nombre")
+  segundoNombre   String? @map("segundo_nombre")
+  primerApellido  String  @map("primer_apellido")
+  segundoApellido String? @map("segundo_apellido")
 
   // Campos legacy (retrocompatibilidad)
-  firstName String @map("first_name") @default("")
-  lastName  String @map("last_name") @default("")
+  firstName String @default("") @map("first_name")
+  lastName  String @default("") @map("last_name")
 
-  birthDate  DateTime? @map("birth_date")
-  gender     Gender?
-  curp       String?
-  nacionalidad String?
-  bloodType  String?   @map("blood_type")
-  address    String?
-  escuelaProcedencia String? @map("escuela_procedencia")
+  birthDate          DateTime? @map("birth_date")
+  gender             Gender?
+  curp               String?
+  nacionalidad       String?
+  bloodType          String?   @map("blood_type")
+  address            String?
+  escuelaProcedencia String?   @map("escuela_procedencia")
 
   nivelEducativo NivelEducativo? @map("nivel_educativo")
-  gradeId        String?         @map("grade_id")   // FK a grades
-  groupId        String?         @map("group_id")   // grupo objetivo
+  gradeId        String?         @map("grade_id") // FK a grades
+  groupId        String?         @map("group_id") // grupo objetivo
 
-  estado          SolicitudEstado @default(DRAFT)
-  motivoRechazo   String?         @map("motivo_rechazo")
-  rechazadoPorId  String?         @map("rechazado_por_id")
-  createdAt       DateTime        @default(now()) @map("created_at")
-  updatedAt       DateTime        @updatedAt @map("updated_at")
+  estado         SolicitudEstado @default(DRAFT)
+  motivoRechazo  String?         @map("motivo_rechazo")
+  rechazadoPorId String?         @map("rechazado_por_id")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
 
   school         School          @relation(fields: [schoolId], references: [id])
   schoolYear     SchoolYear?     @relation(fields: [schoolYearId], references: [id])
@@ -678,9 +818,9 @@ model SolicitudInscripcion {
 model DocumentoSolicitud {
   id                     String          @id @default(uuid())
   solicitudInscripcionId String          @map("solicitud_inscripcion_id")
-  tipoDocumentoId        String?         @map("tipo_documento_id")  // FK configurable
-  tipoDocumento          String          @map("tipo_documento")      // slug legacy/fallback
-  nombreDocumento        String?         @map("nombre_documento")    // nombre legible
+  tipoDocumentoId        String?         @map("tipo_documento_id") // FK configurable
+  tipoDocumento          String          @map("tipo_documento") // slug legacy/fallback
+  nombreDocumento        String?         @map("nombre_documento") // nombre legible
   obligatorio            Boolean         @default(false)
   fileUrl                String?         @map("file_url")
   estado                 DocumentoEstado @default(PENDIENTE)
@@ -688,31 +828,31 @@ model DocumentoSolicitud {
   createdAt              DateTime        @default(now()) @map("created_at")
   updatedAt              DateTime        @updatedAt @map("updated_at")
 
-  solicitud     SolicitudInscripcion  @relation(fields: [solicitudInscripcionId], references: [id], onDelete: Cascade)
-  tipoDocRef    TipoDocumentoEscuela? @relation(fields: [tipoDocumentoId], references: [id])
+  solicitud  SolicitudInscripcion  @relation(fields: [solicitudInscripcionId], references: [id], onDelete: Cascade)
+  tipoDocRef TipoDocumentoEscuela? @relation(fields: [tipoDocumentoId], references: [id])
 
   @@map("documentos_solicitud")
 }
 
 model DatosPadreSolicitud {
-  id                     String  @id @default(uuid())
-  solicitudInscripcionId String  @map("solicitud_inscripcion_id")
+  id                     String @id @default(uuid())
+  solicitudInscripcionId String @map("solicitud_inscripcion_id")
 
-  primerNombre    String   @map("primer_nombre")
-  segundoNombre   String?  @map("segundo_nombre")
-  primerApellido  String   @map("primer_apellido")
-  segundoApellido String?  @map("segundo_apellido")
+  primerNombre    String  @map("primer_nombre")
+  segundoNombre   String? @map("segundo_nombre")
+  primerApellido  String  @map("primer_apellido")
+  segundoApellido String? @map("segundo_apellido")
 
   // Campos legacy
-  firstName String @map("first_name") @default("")
-  lastName  String @map("last_name") @default("")
+  firstName String @default("") @map("first_name")
+  lastName  String @default("") @map("last_name")
 
   email             String
   phone             String?
   relationship      String
   domicilio         String?
-  identificacionUrl String?  @map("identificacion_url")
-  isPrimary         Boolean  @default(false) @map("is_primary")
+  identificacionUrl String? @map("identificacion_url")
+  isPrimary         Boolean @default(false) @map("is_primary")
 
   solicitud SolicitudInscripcion @relation(fields: [solicitudInscripcionId], references: [id], onDelete: Cascade)
 
@@ -774,12 +914,12 @@ model Cargo {
   createdAt              DateTime    @default(now()) @map("created_at")
   updatedAt              DateTime    @updatedAt @map("updated_at")
 
-  school          School                @relation(fields: [schoolId], references: [id])
-  studentProfile  StudentProfile        @relation(fields: [studentProfileId], references: [id])
-  schoolYear      SchoolYear?           @relation(fields: [schoolYearId], references: [id])
-  catalogoCargo   CatalogoCargo?        @relation(fields: [catalogoCargoId], references: [id])
-  solicitud       SolicitudInscripcion? @relation(fields: [solicitudInscripcionId], references: [id], onDelete: SetNull)
-  pagos           Pago[]
+  school         School                @relation(fields: [schoolId], references: [id])
+  studentProfile StudentProfile        @relation(fields: [studentProfileId], references: [id])
+  schoolYear     SchoolYear?           @relation(fields: [schoolYearId], references: [id])
+  catalogoCargo  CatalogoCargo?        @relation(fields: [catalogoCargoId], references: [id])
+  solicitud      SolicitudInscripcion? @relation(fields: [solicitudInscripcionId], references: [id], onDelete: SetNull)
+  pagos          Pago[]
 
   @@map("cargos")
 }
