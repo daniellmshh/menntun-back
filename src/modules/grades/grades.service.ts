@@ -22,6 +22,7 @@ import {
   UpsertEvaluationScoresDto,
   UpsertGradingPolicyDto,
 } from "./grades.dto";
+import { calculateSubjectAverage } from "./grade-calculation";
 
 @Injectable()
 export class GradesService {
@@ -247,16 +248,10 @@ export class GradesService {
     scores.forEach((item) => { const current = bySubject.get(item.evaluation.subjectId) ?? []; current.push(item); bySubject.set(item.evaluation.subjectId, current); });
     const subjects = [...bySubject.entries()].map(([subjectId, entries]) => {
       const policy = policyMap.get(`${entries[0].evaluation.groupId}:${subjectId}`);
-      const byCategory = new Map<string, typeof entries>();
-      entries.forEach((item) => { const current = byCategory.get(item.evaluation.categoryId) ?? []; current.push(item); byCategory.set(item.evaluation.categoryId, current); });
-      const categoryAverages = [...byCategory.entries()].map(([categoryId, values]) => ({ categoryId, name: values[0].evaluation.category.name, average: values.reduce((sum, item) => sum + Number(item.score) / Number(item.evaluation.maxScore), 0) / values.length }));
       const configuredWeights = new Map((policy?.weights ?? []).map((weight) => [weight.categoryId, Number(weight.weight) / 100]));
-      const totalWeight = categoryAverages.reduce((sum, item) => sum + (configuredWeights.get(item.categoryId) ?? 0), 0);
-      const normalized = policy?.calculationMode === EvaluationCalculationMode.WEIGHTED_CATEGORIES && totalWeight > 0
-        ? categoryAverages.reduce((sum, item) => sum + item.average * (configuredWeights.get(item.categoryId) ?? 0), 0) / totalWeight
-        : categoryAverages.reduce((sum, item) => sum + item.average, 0) / categoryAverages.length;
       const scaleMax = Number(policy?.scaleMax ?? 10);
-      return { subjectId, subject: entries[0].evaluation.subject.name, average: Number((normalized * scaleMax).toFixed(2)), scaleMax, passingScore: Number(policy?.passingScore ?? 6), evaluationsGraded: entries.length };
+      const average = calculateSubjectAverage(entries.map((item) => ({ categoryId: item.evaluation.categoryId, categoryName: item.evaluation.category.name, score: Number(item.score), maxScore: Number(item.evaluation.maxScore) })), scaleMax, policy?.calculationMode === EvaluationCalculationMode.WEIGHTED_CATEGORIES, configuredWeights);
+      return { subjectId, subject: entries[0].evaluation.subject.name, average: average ?? 0, scaleMax, passingScore: Number(policy?.passingScore ?? 6), evaluationsGraded: entries.length };
     });
     const overallAverage = subjects.length ? Number((subjects.reduce((sum, item) => sum + item.average / item.scaleMax, 0) / subjects.length * 10).toFixed(2)) : null;
     return { student: { id: student.id, firstName: student.user.firstName, lastName: student.user.lastName }, periodId, subjects, overallAverage };
