@@ -679,6 +679,7 @@ model DocumentoSolicitud {
   tipoDocumentoId        String?         @map("tipo_documento_id")  // FK configurable
   tipoDocumento          String          @map("tipo_documento")      // slug legacy/fallback
   nombreDocumento        String?         @map("nombre_documento")    // nombre legible
+  obligatorio            Boolean         @default(false)
   fileUrl                String?         @map("file_url")
   estado                 DocumentoEstado @default(PENDIENTE)
   observaciones          String?

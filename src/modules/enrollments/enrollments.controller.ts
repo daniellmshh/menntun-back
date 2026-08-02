@@ -129,9 +129,11 @@ export class EnrollmentsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async updateDocumento(
     @Param("docId") docId: string,
+    @CurrentUser() user: RequestUser,
     @Body() dto: ChangeDocumentoStatusDto,
   ) {
-    const data = await this.enrollmentsService.updateDocumento(docId, dto);
+    const schoolId = (user.activeSchoolId || user.schoolId) as string;
+    const data = await this.enrollmentsService.updateDocumento(docId, schoolId, dto);
     return successResponse(data, { message: "Estado de documento actualizado" });
   }
 
