@@ -53,10 +53,30 @@ export class EnrollmentsService {
 
   async createDraft(dto: CreateSolicitudDto, schoolId: string) {
     return this.prisma.$transaction(async (tx) => {
+      const group = await tx.group.findFirst({
+        where: {
+          id: dto.groupId,
+          schoolId,
+          gradeId: dto.gradeId,
+        },
+      });
+
+      if (!group) {
+        throw new BadRequestException(
+          "El grupo seleccionado no corresponde al grado o a la escuela activa",
+        );
+      }
+
+      if (dto.schoolYearId && dto.schoolYearId !== group.schoolYearId) {
+        throw new BadRequestException(
+          "El grupo seleccionado no pertenece al ciclo escolar indicado",
+        );
+      }
+
       const solicitud = await tx.solicitudInscripcion.create({
         data: {
           schoolId,
-          schoolYearId: dto.schoolYearId,
+          schoolYearId: dto.schoolYearId ?? group.schoolYearId,
           studentProfileId: dto.studentProfileId,
           primerNombre: dto.primerNombre,
           segundoNombre: dto.segundoNombre,
@@ -70,9 +90,28 @@ export class EnrollmentsService {
           address: dto.address,
           nivelEducativo: dto.nivelEducativo,
           gradeId: dto.gradeId,
+          groupId: group.id,
           estado: SolicitudEstado.DRAFT,
         },
       });
+
+      const tiposDocumento = await tx.tipoDocumentoEscuela.findMany({
+        where: { schoolId, activo: true },
+        select: { id: true, slug: true, nombre: true, obligatorio: true },
+      });
+
+      if (tiposDocumento.length > 0) {
+        await tx.documentoSolicitud.createMany({
+          data: tiposDocumento.map((tipoDocumento) => ({
+            solicitudInscripcionId: solicitud.id,
+            tipoDocumentoId: tipoDocumento.id,
+            tipoDocumento: tipoDocumento.slug,
+            nombreDocumento: tipoDocumento.nombre,
+            obligatorio: tipoDocumento.obligatorio,
+            estado: DocumentoEstado.PENDIENTE,
+          })),
+        });
+      }
 
       if (dto.padres && dto.padres.length > 0) {
         await tx.datosPadreSolicitud.createMany({
@@ -110,9 +149,18 @@ export class EnrollmentsService {
     });
   }
 
-  async updateDocumento(docId: string, dto: ChangeDocumentoStatusDto) {
+  async updateDocumento(docId: string, schoolId: string, dto: ChangeDocumentoStatusDto) {
+    const documento = await this.prisma.documentoSolicitud.findFirst({
+      where: { id: docId, solicitud: { schoolId } },
+      select: { id: true },
+    });
+
+    if (!documento) {
+      throw new NotFoundException("Documento no encontrado");
+    }
+
     return this.prisma.documentoSolicitud.update({
-      where: { id: docId },
+      where: { id: documento.id },
       data: {
         estado: dto.estado as DocumentoEstado,
         observaciones: dto.observaciones,
@@ -134,10 +182,33 @@ export class EnrollmentsService {
       throw new BadRequestException("La solicitud ya está aprobada");
     }
 
-    // Verificar documentos
-    const pendingDocs = solicitud.documentos.filter((d) => d.estado !== DocumentoEstado.VALIDADO);
-    if (pendingDocs.length > 0) {
-      throw new BadRequestException("No se puede aprobar la solicitud porque hay documentos pendientes o rechazados");
+    // Los documentos obligatorios pendientes conservan la matrícula como condicional.
+
+    if (!solicitud.groupId || !solicitud.gradeId) {
+      throw new BadRequestException(
+        "La solicitud no tiene un grado y grupo asignados; asígnalos antes de aprobarla",
+      );
+    }
+
+    const group = await this.prisma.group.findFirst({
+      where: {
+        id: solicitud.groupId,
+        schoolId,
+        gradeId: solicitud.gradeId,
+        ...(solicitud.schoolYearId
+          ? { schoolYearId: solicitud.schoolYearId }
+          : {}),
+      },
+      select: {
+        id: true,
+        maxStudents: true,
+      },
+    });
+
+    if (!group) {
+      throw new BadRequestException(
+        "El grupo asignado ya no corresponde a esta escuela, grado o ciclo escolar",
+      );
     }
 
     // Transacción masiva
@@ -270,6 +341,18 @@ export class EnrollmentsService {
         });
         
         if (!existingEnrollment) {
+          if (group.maxStudents !== null) {
+            const enrollmentCount = await tx.enrollment.count({
+              where: { groupId: group.id, status: "ACTIVE" },
+            });
+
+            if (enrollmentCount >= group.maxStudents) {
+              throw new BadRequestException(
+                "El grupo asignado ya alcanzó su cupo máximo",
+              );
+            }
+          }
+
           await tx.enrollment.create({
             data: {
               studentProfileId: finalStudentProfileId,
@@ -348,7 +431,10 @@ export class EnrollmentsService {
   }
 
   async getTiposDocumento(schoolId: string) {
-    return this.prisma.tipoDocumentoEscuela.findMany({ where: { schoolId } });
+    return this.prisma.tipoDocumentoEscuela.findMany({
+      where: { schoolId, activo: true },
+      orderBy: { orden: "asc" },
+    });
   }
 
   async createTipoDocumento(schoolId: string, dto: any) {
@@ -396,7 +482,7 @@ export class EnrollmentsService {
     }
 
     const tipoDoc = await this.prisma.tipoDocumentoEscuela.findFirst({
-      where: { id: tipoDocumentoId, schoolId },
+      where: { id: tipoDocumentoId, schoolId, activo: true },
     });
 
     if (!tipoDoc) {
@@ -420,7 +506,7 @@ export class EnrollmentsService {
 
     const fileUrl = `${this.configService.get("supabase.url")}/storage/v1/object/public/enrollment-docs/${filePath}`;
 
-    // Crear o actualizar en DB
+    // Cada archivo debe corresponder a un requisito del expediente de la solicitud.
     const existingDoc = await this.prisma.documentoSolicitud.findFirst({
       where: {
         solicitudInscripcionId: solicitudId,
@@ -428,23 +514,16 @@ export class EnrollmentsService {
       },
     });
 
-    let documento;
-    if (existingDoc) {
-      documento = await this.prisma.documentoSolicitud.update({
-        where: { id: existingDoc.id },
-        data: { fileUrl, estado: "RECIBIDO" },
-      });
-    } else {
-      documento = await this.prisma.documentoSolicitud.create({
-        data: {
-          solicitudInscripcionId: solicitudId,
-          tipoDocumentoId,
-          tipoDocumento: tipoDoc.slug,
-          fileUrl,
-          estado: "RECIBIDO",
-        },
-      });
+    if (!existingDoc) {
+      throw new BadRequestException(
+        "El tipo de documento no forma parte del expediente de esta solicitud",
+      );
     }
+
+    const documento = await this.prisma.documentoSolicitud.update({
+      where: { id: existingDoc.id },
+      data: { fileUrl, estado: DocumentoEstado.RECIBIDO, observaciones: null },
+    });
 
     return documento;
   }

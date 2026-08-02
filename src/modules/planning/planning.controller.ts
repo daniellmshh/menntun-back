@@ -75,7 +75,7 @@ export class PlanningController {
   @ApiOperation({ summary: "Obtener el catálogo completo de campos formativos y contenidos de la SEP junto con lo operativo" })
   async getCatalogo(@CurrentUser() currentUser: RequestUser) {
     const catalogo = this.planningService.getCatalogo(currentUser);
-    return { data: catalogo, meta: null, error: null };
+    return successResponse(catalogo);
   }
 
   @Get()

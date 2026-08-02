@@ -23,7 +23,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { RequireModule } from "../../common/decorators/require-module.decorator";
 import { UserRole } from "@prisma/client";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { RequestUser } from "../../common/types";
+import { RequestUser, successResponse } from "../../common/types";
 
 @Controller("finances")
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -38,7 +38,7 @@ export class FinancesController {
   async getCatalogo(@CurrentUser() user: RequestUser) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.financesService.getCatalogo(schoolId);
-    return { data };
+    return successResponse(data);
   }
 
   @Post("catalogo")
@@ -46,7 +46,7 @@ export class FinancesController {
   async createCatalogoCargo(@CurrentUser() user: RequestUser, @Body() dto: CreateCatalogoCargoDto) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.financesService.createCatalogoCargo(schoolId, dto);
-    return { data, message: "Cargo agregado al catálogo" };
+    return successResponse(data, { message: "Cargo agregado al catálogo" });
   }
 
   @Patch("catalogo/:id")
@@ -58,7 +58,7 @@ export class FinancesController {
   ) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.financesService.updateCatalogoCargo(id, schoolId, dto);
-    return { data, message: "Cargo del catálogo actualizado" };
+    return successResponse(data, { message: "Cargo del catálogo actualizado" });
   }
 
   @Delete("catalogo/:id")
@@ -66,7 +66,7 @@ export class FinancesController {
   async deleteCatalogoCargo(@Param("id") id: string, @CurrentUser() user: RequestUser) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.financesService.deleteCatalogoCargo(id, schoolId);
-    return { data, message: "Cargo eliminado del catálogo" };
+    return successResponse(data, { message: "Cargo eliminado" });
   }
 
   // ─── Cargos (Cuenta por Cobrar) ────────────────────────
@@ -79,7 +79,7 @@ export class FinancesController {
   ) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.financesService.getCargos(schoolId, studentProfileId);
-    return { data };
+    return successResponse(data);
   }
 
   @Post("cargos")
@@ -87,7 +87,7 @@ export class FinancesController {
   async createCargo(@CurrentUser() user: RequestUser, @Body() dto: CreateCargoDto) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.financesService.createCargo(schoolId, dto);
-    return { data, message: "Cargo asignado al estudiante" };
+    return successResponse(data, { message: "Cargo asignado al estudiante" });
   }
 
   @Patch("cargos/:id")
@@ -99,7 +99,7 @@ export class FinancesController {
   ) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.financesService.updateCargo(id, schoolId, dto);
-    return { data, message: "Cargo actualizado" };
+    return successResponse(data, { message: "Cargo actualizado" });
   }
 
   @Delete("cargos/:id")
@@ -107,7 +107,7 @@ export class FinancesController {
   async deleteCargo(@Param("id") id: string, @CurrentUser() user: RequestUser) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.financesService.deleteCargo(id, schoolId);
-    return { data, message: "Cargo eliminado" };
+    return successResponse(data, { message: "Cargo eliminado" });
   }
 
   // ─── Pagos ─────────────────────────────────────────────
@@ -121,6 +121,6 @@ export class FinancesController {
   ) {
     const schoolId = (user.activeSchoolId || user.schoolId) as string;
     const data = await this.financesService.registerPago(id, schoolId, dto, user);
-    return { data, message: "Pago registrado correctamente" };
+    return successResponse(data, { message: "Pago registrado correctamente" });
   }
 }

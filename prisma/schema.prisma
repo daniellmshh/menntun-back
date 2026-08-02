@@ -385,14 +385,15 @@ model Group {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  school      School         @relation(fields: [schoolId], references: [id])
-  grade       Grade          @relation(fields: [gradeId], references: [id])
-  schoolYear  SchoolYear     @relation(fields: [schoolYearId], references: [id])
-  teachers    GroupTeacher[]
-  enrollments Enrollment[]
-  attendances Attendance[]
-  tasks       Task[]
-  plannings   Planning[]
+  school             School                 @relation(fields: [schoolId], references: [id])
+  grade              Grade                  @relation(fields: [gradeId], references: [id])
+  schoolYear         SchoolYear             @relation(fields: [schoolYearId], references: [id])
+  teachers           GroupTeacher[]
+  enrollments        Enrollment[]
+  enrollmentRequests SolicitudInscripcion[]
+  attendances        Attendance[]
+  tasks              Task[]
+  plannings          Planning[]
 
   @@unique([schoolId, gradeId, schoolYearId, name])
   @@map("groups")
@@ -665,6 +666,7 @@ model SolicitudInscripcion {
   school         School          @relation(fields: [schoolId], references: [id])
   schoolYear     SchoolYear?     @relation(fields: [schoolYearId], references: [id])
   studentProfile StudentProfile? @relation(fields: [studentProfileId], references: [id])
+  group          Group?          @relation(fields: [groupId], references: [id])
 
   documentos DocumentoSolicitud[]
   padres     DatosPadreSolicitud[]
@@ -679,6 +681,7 @@ model DocumentoSolicitud {
   tipoDocumentoId        String?         @map("tipo_documento_id")  // FK configurable
   tipoDocumento          String          @map("tipo_documento")      // slug legacy/fallback
   nombreDocumento        String?         @map("nombre_documento")    // nombre legible
+  obligatorio            Boolean         @default(false)
   fileUrl                String?         @map("file_url")
   estado                 DocumentoEstado @default(PENDIENTE)
   observaciones          String?
