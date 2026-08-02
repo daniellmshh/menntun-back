@@ -256,4 +256,19 @@ export class GradesService {
     const overallAverage = subjects.length ? Number((subjects.reduce((sum, item) => sum + item.average / item.scaleMax, 0) / subjects.length * 10).toFixed(2)) : null;
     return { student: { id: student.id, firstName: student.user.firstName, lastName: student.user.lastName }, periodId, subjects, overallAverage };
   }
+
+  async getMyStudents(user: RequestUser) {
+    const schoolId = this.schoolId(user);
+    if (user.role === UserRole.STUDENT) {
+      return prisma.studentProfile.findMany({
+        where: { userId: user.id, user: { schoolId } },
+        select: { id: true, user: { select: { firstName: true, lastName: true } }, enrollments: { where: { status: "ACTIVE" }, select: { group: { select: { schoolYear: { select: { id: true, name: true, periods: { orderBy: { order: "asc" }, select: { id: true, name: true } } } } } } } } },
+      });
+    }
+    if (user.role !== UserRole.PARENT && user.role !== UserRole.TUTOR) throw new ForbiddenException("Este recurso sólo está disponible para familias y alumnos");
+    return prisma.studentProfile.findMany({
+      where: { user: { schoolId }, parentLinks: { some: { parentProfile: { userId: user.id } } } },
+      select: { id: true, user: { select: { firstName: true, lastName: true } }, enrollments: { where: { status: "ACTIVE" }, select: { group: { select: { schoolYear: { select: { id: true, name: true, periods: { orderBy: { order: "asc" }, select: { id: true, name: true } } } } } } } } },
+    });
+  }
 }

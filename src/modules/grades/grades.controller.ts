@@ -66,6 +66,10 @@ export class GradesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER)
   async upsertScores(@Param("id") id: string, @CurrentUser() user: RequestUser, @Body() dto: UpsertEvaluationScoresDto) { return successResponse(await this.gradesService.upsertScores(id, user, dto)); }
 
+  @Get("me/students")
+  @Roles(UserRole.PARENT, UserRole.TUTOR, UserRole.STUDENT)
+  async getMyStudents(@CurrentUser() user: RequestUser) { return successResponse(await this.gradesService.getMyStudents(user)); }
+
   @Get("students/:studentProfileId/summary")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER, UserRole.PARENT, UserRole.TUTOR, UserRole.STUDENT)
   async getStudentSummary(@Param("studentProfileId") studentProfileId: string, @Query("periodId") periodId: string, @CurrentUser() user: RequestUser) { return successResponse(await this.gradesService.getStudentPeriodSummary(user, studentProfileId, periodId)); }
