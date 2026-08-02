@@ -562,6 +562,8 @@ model GradingPolicy {
   calculationMode EvaluationCalculationMode @default(WEIGHTED_CATEGORIES) @map("calculation_mode")
   scaleMax        Decimal                   @default(10) @map("scale_max") @db.Decimal(5, 2)
   passingScore    Decimal                   @default(6) @map("passing_score") @db.Decimal(5, 2)
+  closedAt        DateTime?                 @map("closed_at")
+  finalSnapshots  Json?                     @map("final_snapshots")
   createdAt       DateTime                  @default(now()) @map("created_at")
   updatedAt       DateTime                  @updatedAt @map("updated_at")
 

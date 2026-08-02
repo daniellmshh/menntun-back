@@ -124,6 +124,8 @@ export class GradesService {
     this.requireAdmin(user);
     const schoolId = this.schoolId(user);
     await this.assertAcademicContext(schoolId, dto.groupId, dto.subjectId, dto.periodId);
+    const existingPolicy = await prisma.gradingPolicy.findUnique({ where: { groupId_subjectId_periodId: { groupId: dto.groupId, subjectId: dto.subjectId, periodId: dto.periodId } } });
+    if (existingPolicy?.closedAt) throw new BadRequestException("El período académico está cerrado para este grupo y materia");
     const weights = dto.weights ?? [];
     if (dto.calculationMode !== EvaluationCalculationMode.AVERAGE) {
       const total = weights.reduce((sum, item) => sum + Number(item.weight), 0);
@@ -172,6 +174,8 @@ export class GradesService {
     const schoolId = this.schoolId(user);
     const teacherProfileId = await this.teacherProfileId(user, dto.teacherProfileId);
     const context = await this.assertAcademicContext(schoolId, dto.groupId, dto.subjectId, dto.periodId);
+    const policy = await prisma.gradingPolicy.findUnique({ where: { groupId_subjectId_periodId: { groupId: dto.groupId, subjectId: dto.subjectId, periodId: dto.periodId } } });
+    if (policy?.closedAt) throw new BadRequestException("El período académico está cerrado para este grupo y materia");
     this.assertEvaluationDateWithinPeriod(new Date(dto.evaluationDate), context.period);
     await this.assertTeacherAssignment(user, teacherProfileId, dto.groupId, dto.subjectId);
     const category = await prisma.evaluationCategory.findFirst({ where: { id: dto.categoryId, schoolId, active: true } });
@@ -226,6 +230,24 @@ export class GradesService {
     const students = await prisma.enrollment.findMany({ where: { groupId: evaluation.groupId, status: "ACTIVE" }, select: { studentProfileId: true } });
     await prisma.evaluationScore.createMany({ data: students.map(({ studentProfileId }) => ({ evaluationId: id, studentProfileId })), skipDuplicates: true });
     return this.getEvaluation(id, user);
+  }
+
+  async closePeriod(user: RequestUser, groupId: string, subjectId: string, periodId: string) {
+    this.requireAdmin(user);
+    const schoolId = this.schoolId(user);
+    await this.assertAcademicContext(schoolId, groupId, subjectId, periodId);
+    const policy = await prisma.gradingPolicy.findUnique({ where: { groupId_subjectId_periodId: { groupId, subjectId, periodId } }, include: { weights: true } });
+    if (policy?.closedAt) throw new BadRequestException("El período ya está cerrado");
+    const scores = await prisma.evaluationScore.findMany({ where: { status: EvaluationScoreStatus.GRADED, evaluation: { schoolId, groupId, subjectId, periodId } }, include: { evaluation: { include: { category: true } } } });
+    const byStudent = new Map<string, typeof scores>();
+    scores.forEach((score) => { const current = byStudent.get(score.studentProfileId) ?? []; current.push(score); byStudent.set(score.studentProfileId, current); });
+    const weights = new Map((policy?.weights ?? []).map((weight) => [weight.categoryId, Number(weight.weight) / 100]));
+    const snapshots = [...byStudent.entries()].map(([studentProfileId, entries]) => ({ studentProfileId, average: calculateSubjectAverage(entries.map((item) => ({ categoryId: item.evaluation.categoryId, categoryName: item.evaluation.category.name, score: Number(item.score), maxScore: Number(item.evaluation.maxScore) })), Number(policy?.scaleMax ?? 10), policy?.calculationMode === EvaluationCalculationMode.WEIGHTED_CATEGORIES, weights) ?? 0, evaluationsGraded: entries.length }));
+    await prisma.$transaction([
+      prisma.gradingPolicy.upsert({ where: { groupId_subjectId_periodId: { groupId, subjectId, periodId } }, create: { schoolId, groupId, subjectId, periodId, closedAt: new Date(), finalSnapshots: snapshots }, update: { closedAt: new Date(), finalSnapshots: snapshots } }),
+      prisma.evaluation.updateMany({ where: { schoolId, groupId, subjectId, periodId }, data: { status: EvaluationStatus.CLOSED } }),
+    ]);
+    return { snapshots, closedAt: new Date() };
   }
 
   async upsertScores(id: string, user: RequestUser, dto: UpsertEvaluationScoresDto) {

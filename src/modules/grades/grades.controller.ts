@@ -46,6 +46,10 @@ export class GradesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
   async upsertPolicy(@CurrentUser() user: RequestUser, @Body() dto: UpsertGradingPolicyDto) { return successResponse(await this.gradesService.upsertGradingPolicy(user, dto)); }
 
+  @Post("periods/close")
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN)
+  async closePeriod(@CurrentUser() user: RequestUser, @Query("groupId") groupId: string, @Query("subjectId") subjectId: string, @Query("periodId") periodId: string) { return successResponse(await this.gradesService.closePeriod(user, groupId, subjectId, periodId)); }
+
   @Get("evaluations")
   @Roles(UserRole.SUPER_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.TEACHER)
   async listEvaluations(@CurrentUser() user: RequestUser, @Query("groupId") groupId: string, @Query("subjectId") subjectId?: string, @Query("periodId") periodId?: string) { return successResponse(await this.gradesService.listEvaluations(user, groupId, subjectId, periodId)); }
