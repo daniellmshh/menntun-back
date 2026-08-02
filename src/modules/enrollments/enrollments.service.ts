@@ -53,10 +53,30 @@ export class EnrollmentsService {
 
   async createDraft(dto: CreateSolicitudDto, schoolId: string) {
     return this.prisma.$transaction(async (tx) => {
+      const group = await tx.group.findFirst({
+        where: {
+          id: dto.groupId,
+          schoolId,
+          gradeId: dto.gradeId,
+        },
+      });
+
+      if (!group) {
+        throw new BadRequestException(
+          "El grupo seleccionado no corresponde al grado o a la escuela activa",
+        );
+      }
+
+      if (dto.schoolYearId && dto.schoolYearId !== group.schoolYearId) {
+        throw new BadRequestException(
+          "El grupo seleccionado no pertenece al ciclo escolar indicado",
+        );
+      }
+
       const solicitud = await tx.solicitudInscripcion.create({
         data: {
           schoolId,
-          schoolYearId: dto.schoolYearId,
+          schoolYearId: dto.schoolYearId ?? group.schoolYearId,
           studentProfileId: dto.studentProfileId,
           primerNombre: dto.primerNombre,
           segundoNombre: dto.segundoNombre,
@@ -70,6 +90,7 @@ export class EnrollmentsService {
           address: dto.address,
           nivelEducativo: dto.nivelEducativo,
           gradeId: dto.gradeId,
+          groupId: group.id,
           estado: SolicitudEstado.DRAFT,
         },
       });
@@ -138,6 +159,33 @@ export class EnrollmentsService {
     const pendingDocs = solicitud.documentos.filter((d) => d.estado !== DocumentoEstado.VALIDADO);
     if (pendingDocs.length > 0) {
       throw new BadRequestException("No se puede aprobar la solicitud porque hay documentos pendientes o rechazados");
+    }
+
+    if (!solicitud.groupId || !solicitud.gradeId) {
+      throw new BadRequestException(
+        "La solicitud no tiene un grado y grupo asignados; asígnalos antes de aprobarla",
+      );
+    }
+
+    const group = await this.prisma.group.findFirst({
+      where: {
+        id: solicitud.groupId,
+        schoolId,
+        gradeId: solicitud.gradeId,
+        ...(solicitud.schoolYearId
+          ? { schoolYearId: solicitud.schoolYearId }
+          : {}),
+      },
+      select: {
+        id: true,
+        maxStudents: true,
+      },
+    });
+
+    if (!group) {
+      throw new BadRequestException(
+        "El grupo asignado ya no corresponde a esta escuela, grado o ciclo escolar",
+      );
     }
 
     // Transacción masiva
@@ -270,6 +318,18 @@ export class EnrollmentsService {
         });
         
         if (!existingEnrollment) {
+          if (group.maxStudents !== null) {
+            const enrollmentCount = await tx.enrollment.count({
+              where: { groupId: group.id, status: "ACTIVE" },
+            });
+
+            if (enrollmentCount >= group.maxStudents) {
+              throw new BadRequestException(
+                "El grupo asignado ya alcanzó su cupo máximo",
+              );
+            }
+          }
+
           await tx.enrollment.create({
             data: {
               studentProfileId: finalStudentProfileId,
