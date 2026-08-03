@@ -11,4 +11,8 @@ export default () => ({
     anonKey: process.env.SUPABASE_ANON_KEY || "",
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
   },
+  resend: {
+    apiKey: process.env.RESEND_API_KEY || "",
+    from: process.env.RESEND_FROM || "",
+  },
 });

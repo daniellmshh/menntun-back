@@ -19,6 +19,8 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
 import { FinancesModule } from "./modules/finances/finances.module";
 import { ParentsModule } from "./modules/parents/parents.module";
 import { GradesModule } from "./modules/grades/grades.module";
+import { ScheduleModule } from "@nestjs/schedule";
+import { AttendanceModule } from "./modules/attendance/attendance.module";
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { GradesModule } from "./modules/grades/grades.module";
       load: [configuration],
     }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     SchoolsModule,
@@ -39,6 +42,7 @@ import { GradesModule } from "./modules/grades/grades.module";
     FinancesModule,
     ParentsModule,
     GradesModule,
+    AttendanceModule,
   ],
   controllers: [AppController],
   providers: [
