@@ -42,6 +42,13 @@ export class EnrollmentsService {
       where: whereClause,
       include: {
         schoolYear: true,
+        group: {
+          select: {
+            id: true,
+            name: true,
+            grade: { select: { id: true, name: true } },
+          },
+        },
         studentProfile: { include: { user: true } },
         documentos: true,
         padres: true,
