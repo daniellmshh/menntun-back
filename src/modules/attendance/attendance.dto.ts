@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { ArrayMinSize, IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, ValidateNested } from "class-validator";
-import { AttendanceEventSource, AttendanceEventType, AttendanceStatus } from "@prisma/client";
+import { AttendanceEventSource, AttendanceEventType, AttendanceStatus, DailyAttendanceStatus } from "@prisma/client";
 
 export class UpdateAttendanceSettingsDto {
   @IsString() @IsOptional() timezone?: string;
@@ -28,6 +28,19 @@ export class UpdatePickupContactDto {
   @IsDateString() @IsOptional() validUntil?: string;
   @IsBoolean() @IsOptional() requiresIdCheck?: boolean;
   @IsBoolean() @IsOptional() active?: boolean;
+}
+
+export class CreatePushSubscriptionDto {
+  @IsString() @IsNotEmpty() endpoint: string;
+  @IsString() @IsNotEmpty() p256dh: string;
+  @IsString() @IsNotEmpty() auth: string;
+}
+
+export class DailyAttendanceReportQueryDto {
+  @IsDateString() @IsOptional() date?: string;
+  @IsString() @IsOptional() groupId?: string;
+  @IsEnum(DailyAttendanceStatus) @IsOptional() status?: DailyAttendanceStatus;
+  @IsBoolean() @IsOptional() withoutGateEvidence?: boolean;
 }
 
 export class ScanAttendanceDto {

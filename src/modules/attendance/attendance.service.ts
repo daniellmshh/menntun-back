@@ -1,15 +1,23 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { createClient } from "@supabase/supabase-js";
 import { createHash, randomBytes } from "crypto";
 import { AttendanceEventSource, AttendanceEventType, AttendancePresenceState, AttendanceStatus, DailyAttendanceStatus, UserRole } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { RequestUser } from "../../common/types";
-import { CreateClassSessionDto, CreatePickupContactDto, ReopenDailyAttendanceDto, ScanAttendanceDto, UpdateAttendanceSettingsDto, UpdatePickupContactDto, UpsertClassAttendanceDto } from "./attendance.dto";
+import { CreateClassSessionDto, CreatePickupContactDto, CreatePushSubscriptionDto, DailyAttendanceReportQueryDto, ReopenDailyAttendanceDto, ScanAttendanceDto, UpdateAttendanceSettingsDto, UpdatePickupContactDto, UpsertClassAttendanceDto } from "./attendance.dto";
+import { AttendanceNotificationsService } from "./attendance-notifications.service";
 
 const ADMIN: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.SCHOOL_ADMIN];
 const GATE: UserRole[] = [...ADMIN, UserRole.ATTENDANCE_OPERATOR];
+type UploadedImage = { mimetype: string; size: number; buffer: Buffer };
 
 @Injectable()
 export class AttendanceService {
+  private readonly supabaseAdmin;
+  constructor(private readonly config: ConfigService, private readonly notifications: AttendanceNotificationsService) {
+    this.supabaseAdmin = createClient(config.get<string>("supabase.url") || "", config.get<string>("supabase.serviceRoleKey") || "", { auth: { autoRefreshToken: false, persistSession: false } });
+  }
   private schoolId(user: RequestUser) { const id = user.activeSchoolId || user.schoolId; if (!id) throw new BadRequestException("Selecciona una escuela"); return id; }
   private admin(user: RequestUser) { if (!ADMIN.includes(user.role)) throw new ForbiddenException("Sólo administración puede configurar asistencias"); }
   private gate(user: RequestUser) { if (!GATE.includes(user.role)) throw new ForbiddenException("No tienes acceso a portería"); }
@@ -69,6 +77,9 @@ export class AttendanceService {
       await tx.studentPresenceState.upsert({ where: { schoolId_studentProfileId_localDate: { schoolId, studentProfileId: credential.studentProfileId, localDate } }, create: { schoolId, groupId: enrollment.groupId, studentProfileId: credential.studentProfileId, localDate, state: next, lastEventId: created.id }, update: { groupId: enrollment.groupId, state: next, lastEventId: created.id } });
       await tx.dailyAttendanceSummary.upsert({ where: { schoolId_studentProfileId_localDate: { schoolId, studentProfileId: credential.studentProfileId, localDate } }, create: { schoolId, groupId: enrollment.groupId, studentProfileId: credential.studentProfileId, localDate, status: late ? DailyAttendanceStatus.LATE : DailyAttendanceStatus.PRESENT, arrivedAt: next === AttendancePresenceState.INSIDE ? occurredAt : undefined, departedAt: next !== AttendancePresenceState.INSIDE ? occurredAt : undefined, hasGateEvidence: true }, update: { status: late ? DailyAttendanceStatus.LATE : DailyAttendanceStatus.PRESENT, ...(next === AttendancePresenceState.INSIDE ? { arrivedAt: occurredAt } : { departedAt: occurredAt }), hasGateEvidence: true } }); return created;
     });
+    // Alerts are deliberately asynchronous: an unavailable mail/push provider must never
+    // prevent the gate event, state transition, or audit trail from being persisted.
+    void this.notifications.notifyEvent(event.id).catch(() => undefined);
     return { event, duplicate: false, student: { id: credential.studentProfileId, firstName: credential.studentProfile.user.firstName, lastName: credential.studentProfile.user.lastName, avatarUrl: credential.studentProfile.user.avatarUrl }, state: next };
   }
 
@@ -126,6 +137,47 @@ export class AttendanceService {
       if (this.timeInZone(now, setting.timezone) >= this.minutes(setting.dailyCloseTime)) await this.closeDay(setting.schoolId, localDate);
     }
   }
+  async uploadPickupPhoto(user: RequestUser, contactId: string, file: UploadedImage) {
+    this.admin(user); const schoolId = this.schoolId(user);
+    if (!file || !["image/jpeg", "image/png", "image/webp"].includes(file.mimetype) || file.size > 2 * 1024 * 1024) throw new BadRequestException("La foto debe ser JPG, PNG o WebP y pesar máximo 2 MB");
+    const contact = await prisma.studentPickupContact.findFirst({ where: { id: contactId, schoolId } }); if (!contact) throw new NotFoundException("Persona autorizada no encontrada");
+    const bucket = "attendance-pickup-photos"; const { data: existing } = await this.supabaseAdmin.storage.getBucket(bucket);
+    if (!existing) { const { error } = await this.supabaseAdmin.storage.createBucket(bucket, { public: false, fileSizeLimit: "2MB", allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"] }); if (error) throw new BadRequestException("No fue posible preparar el almacenamiento de fotos"); }
+    const extension = file.mimetype.split("/")[1] === "jpeg" ? "jpg" : file.mimetype.split("/")[1]; const path = `${schoolId}/${contact.studentProfileId}/${contact.id}.${extension}`;
+    const { error } = await this.supabaseAdmin.storage.from(bucket).upload(path, file.buffer, { contentType: file.mimetype, upsert: true }); if (error) throw new BadRequestException("No fue posible cargar la foto");
+    return prisma.studentPickupContact.update({ where: { id: contact.id }, data: { photoPath: path } });
+  }
+  async pickupPhotoUrl(user: RequestUser, contactId: string) {
+    this.gate(user); const schoolId = this.schoolId(user); const contact = await prisma.studentPickupContact.findFirst({ where: { id: contactId, schoolId } }); if (!contact?.photoPath) throw new NotFoundException("La persona no tiene foto registrada");
+    await this.assertStudentAccess(user, contact.studentProfileId); const { data, error } = await this.supabaseAdmin.storage.from("attendance-pickup-photos").createSignedUrl(contact.photoPath, 300); if (error || !data?.signedUrl) throw new BadRequestException("No fue posible obtener la foto"); return { url: data.signedUrl, expiresIn: 300 };
+  }
+  async dailyReport(user: RequestUser, query: DailyAttendanceReportQueryDto) {
+    this.admin(user); const schoolId = this.schoolId(user); const date = query.date ? new Date(query.date) : this.dateInZone(new Date(), (await this.settings(schoolId)).timezone);
+    const enrollments = await prisma.enrollment.findMany({ where: { status: "ACTIVE", group: { schoolId, ...(query.groupId ? { id: query.groupId } : {}) } }, include: { group: { include: { grade: true } }, studentProfile: { include: { user: { select: { firstName: true, lastName: true, avatarUrl: true } }, dailyAttendance: { where: { schoolId, localDate: date }, take: 1 }, presenceStates: { where: { schoolId, localDate: date }, take: 1 } } } } });
+    const rows = enrollments.map(enrollment => { const summary = enrollment.studentProfile.dailyAttendance[0]; return { studentProfileId: enrollment.studentProfileId, student: enrollment.studentProfile.user, group: enrollment.group, status: summary?.status ?? DailyAttendanceStatus.PENDING, arrivedAt: summary?.arrivedAt ?? null, departedAt: summary?.departedAt ?? null, hasGateEvidence: summary?.hasGateEvidence ?? false, hasClassEvidence: summary?.hasClassEvidence ?? false, state: enrollment.studentProfile.presenceStates[0]?.state ?? AttendancePresenceState.OUTSIDE, closedAt: summary?.closedAt ?? null }; }).filter(row => (!query.status || row.status === query.status) && (!query.withoutGateEvidence || !row.hasGateEvidence));
+    const totals = rows.reduce((value, row) => ({ ...value, [row.status]: (value[row.status] ?? 0) + 1 }), {} as Record<string, number>); return { date, rows, totals };
+  }
+  async familyAttendance(user: RequestUser, studentProfileId?: string) {
+    const schoolId = this.schoolId(user); let students: string[] = [];
+    if (user.role === UserRole.STUDENT) { const student = await prisma.studentProfile.findFirst({ where: { userId: user.id, user: { schoolId } } }); if (student) students = [student.id]; }
+    else {
+      const parent = await prisma.parentProfile.findFirst({
+        where: { userId: user.id },
+        include: {
+          studentLinks: {
+            where: { studentProfile: { user: { schoolId } } },
+            include: { studentProfile: { include: { user: { select: { firstName: true, lastName: true } } } } },
+          },
+        },
+      });
+      students = parent?.studentLinks.map(link => link.studentProfileId) ?? [];
+    }
+    if (studentProfileId) { if (!students.includes(studentProfileId)) throw new ForbiddenException("Sin acceso al alumno"); students = [studentProfileId]; }
+    return Promise.all(students.map(async id => ({ student: await prisma.studentProfile.findUnique({ where: { id }, include: { user: { select: { firstName: true, lastName: true } } } }), summaries: await prisma.dailyAttendanceSummary.findMany({ where: { schoolId, studentProfileId: id }, orderBy: { localDate: "desc" }, take: 60 }), events: await prisma.attendanceEvent.findMany({ where: { schoolId, studentProfileId: id }, orderBy: { occurredAt: "desc" }, take: 100 }) })));
+  }
+  async upsertPushSubscription(user: RequestUser, dto: CreatePushSubscriptionDto) { if (user.role !== UserRole.PARENT && user.role !== UserRole.TUTOR) throw new ForbiddenException("Sólo tutores pueden activar alertas"); return prisma.pushSubscription.upsert({ where: { endpoint: dto.endpoint }, create: { userId: user.id, ...dto }, update: { userId: user.id, p256dh: dto.p256dh, auth: dto.auth, active: true } }); }
+  async removePushSubscription(user: RequestUser, endpoint: string) { const result = await prisma.pushSubscription.updateMany({ where: { endpoint, userId: user.id }, data: { active: false } }); if (!result.count) throw new NotFoundException("Suscripción no encontrada"); return { removed: true }; }
+  pushPublicKey() { return { publicKey: process.env.VAPID_PUBLIC_KEY || null }; }
   private async teacher(user: RequestUser) { const profile = await prisma.teacherProfile.findFirst({ where: { userId: user.id } }); if (!profile) throw new ForbiddenException("Perfil docente no configurado"); return profile; }
   private async assertStudentAccess(user: RequestUser, studentProfileId: string) {
     const schoolId = this.schoolId(user); const student = await prisma.studentProfile.findFirst({ where: { id: studentProfileId, user: { schoolId } } }); if (!student) throw new NotFoundException("Alumno no encontrado");

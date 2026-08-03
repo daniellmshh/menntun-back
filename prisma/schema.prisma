@@ -68,6 +68,23 @@ enum DailyAttendanceStatus {
   EXCUSED
 }
 
+enum AttendanceNotificationType {
+  CHECK_IN
+  CHECK_OUT
+  EARLY_RELEASE
+}
+
+enum AttendanceNotificationChannel {
+  EMAIL
+  PUSH
+}
+
+enum AttendanceNotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 enum TaskStatus {
   DRAFT
   PUBLISHED
@@ -257,6 +274,7 @@ model School {
   presenceStates         StudentPresenceState[]
   dailyAttendance        DailyAttendanceSummary[]
   classAttendanceSessions ClassAttendanceSession[]
+  attendanceNotifications AttendanceNotification[]
 
   @@map("schools")
 }
@@ -335,6 +353,8 @@ model User {
   studentProfile StudentProfile?
   parentProfile  ParentProfile?
   attendanceEvents AttendanceEvent[] @relation("AttendanceEventOperator")
+  attendanceNotifications AttendanceNotification[] @relation("AttendanceNotificationRecipient")
+  pushSubscriptions PushSubscription[]
 
   // Since schoolId can be null, the unique constraint on [schoolId, email] might not work exactly as before for ORG_ADMINs.
   // But PostgreSQL treats nulls as distinct, so multiple users could have null schoolId and the same email.
@@ -588,6 +608,7 @@ model StudentPickupContact {
   validFrom        DateTime? @map("valid_from") @db.Date
   validUntil       DateTime? @map("valid_until") @db.Date
   requiresIdCheck  Boolean   @default(true) @map("requires_id_check")
+  photoPath        String?  @map("photo_path")
   active           Boolean   @default(true)
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
@@ -625,11 +646,50 @@ model AttendanceEvent {
   credential     AttendanceCredential? @relation(fields: [credentialId], references: [id])
   pickupContact  StudentPickupContact? @relation(fields: [pickupContactId], references: [id])
   operator       User                  @relation("AttendanceEventOperator", fields: [operatorId], references: [id])
+  notifications  AttendanceNotification[]
 
   @@unique([schoolId, clientEventId])
   @@index([schoolId, localDate, occurredAt])
   @@index([studentProfileId, occurredAt])
   @@map("attendance_events")
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, active])
+  @@map("push_subscriptions")
+}
+
+model AttendanceNotification {
+  id          String                     @id @default(uuid())
+  schoolId    String                     @map("school_id")
+  eventId     String                     @map("event_id")
+  recipientId String                     @map("recipient_id")
+  type        AttendanceNotificationType
+  channel     AttendanceNotificationChannel
+  status      AttendanceNotificationStatus @default(PENDING)
+  sentAt      DateTime?                  @map("sent_at")
+  failedAt    DateTime?                  @map("failed_at")
+  error       String?
+  createdAt   DateTime                   @default(now()) @map("created_at")
+
+  school    School          @relation(fields: [schoolId], references: [id])
+  event     AttendanceEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  recipient User            @relation("AttendanceNotificationRecipient", fields: [recipientId], references: [id])
+
+  @@unique([eventId, recipientId, channel])
+  @@index([schoolId, createdAt])
+  @@map("attendance_notifications")
 }
 
 model StudentPresenceState {
