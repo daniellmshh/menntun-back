@@ -479,7 +479,14 @@ export class AcademicService {
           select: { name: true, level: true },
         },
         schoolYear: {
-          select: { name: true, active: true },
+          select: {
+            name: true,
+            active: true,
+            periods: {
+              select: { id: true, name: true, startDate: true, endDate: true },
+              orderBy: { startDate: "asc" },
+            },
+          },
         },
         school: { select: { name: true, code: true } },
         _count: {
