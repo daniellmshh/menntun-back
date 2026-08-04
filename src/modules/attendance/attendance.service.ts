@@ -114,11 +114,42 @@ export class AttendanceService {
   async closeDay(schoolId: string, date: Date) {
     const settings = await this.settings(schoolId); const now = new Date();
     const enrollments = await prisma.enrollment.findMany({ where: { status: "ACTIVE", group: { schoolId } }, select: { groupId: true, studentProfileId: true } });
-    await prisma.$transaction(async tx => {
-      await Promise.all(enrollments.map(x => tx.dailyAttendanceSummary.upsert({ where: { schoolId_studentProfileId_localDate: { schoolId, studentProfileId: x.studentProfileId, localDate: date } }, create: { schoolId, groupId: x.groupId, studentProfileId: x.studentProfileId, localDate: date, status: DailyAttendanceStatus.ABSENT, closedAt: now }, update: { closedAt: now } })));
-      await tx.dailyAttendanceSummary.updateMany({ where: { schoolId, localDate: date, status: DailyAttendanceStatus.PENDING, hasGateEvidence: false, hasClassEvidence: false }, data: { status: DailyAttendanceStatus.ABSENT, closedAt: now } });
+    if (!enrollments.length) return { closed: 0, alreadyClosed: true, timezone: settings.timezone };
+
+    const studentProfileIds = enrollments.map(({ studentProfileId }) => studentProfileId);
+    const alreadyClosed = await prisma.dailyAttendanceSummary.findMany({
+      where: { schoolId, localDate: date, studentProfileId: { in: studentProfileIds }, closedAt: { not: null } },
+      select: { studentProfileId: true },
     });
-    return { closed: enrollments.length, timezone: settings.timezone };
+    const closedStudentIds = new Set(alreadyClosed.map(({ studentProfileId }) => studentProfileId));
+    const enrollmentsToClose = enrollments.filter(({ studentProfileId }) => !closedStudentIds.has(studentProfileId));
+
+    // El cron se ejecuta cada diez minutos, pero un cierre ya terminado no debe
+    // reescribir sus resúmenes ni alterar su marca de auditoría.
+    if (!enrollmentsToClose.length) return { closed: 0, alreadyClosed: true, timezone: settings.timezone };
+
+    const pendingStudentProfileIds = enrollmentsToClose.map(({ studentProfileId }) => studentProfileId);
+    await prisma.$transaction(async tx => {
+      await tx.dailyAttendanceSummary.createMany({
+        data: enrollmentsToClose.map(({ groupId, studentProfileId }) => ({
+          schoolId, groupId, studentProfileId, localDate: date,
+          status: DailyAttendanceStatus.ABSENT, closedAt: now,
+        })),
+        skipDuplicates: true,
+      });
+      await tx.dailyAttendanceSummary.updateMany({
+        where: {
+          schoolId, localDate: date, studentProfileId: { in: pendingStudentProfileIds }, closedAt: null,
+          status: DailyAttendanceStatus.PENDING, hasGateEvidence: false, hasClassEvidence: false,
+        },
+        data: { status: DailyAttendanceStatus.ABSENT, closedAt: now },
+      });
+      await tx.dailyAttendanceSummary.updateMany({
+        where: { schoolId, localDate: date, studentProfileId: { in: pendingStudentProfileIds }, closedAt: null },
+        data: { closedAt: now },
+      });
+    });
+    return { closed: enrollmentsToClose.length, alreadyClosed: false, timezone: settings.timezone };
   }
   async reopenDay(user: RequestUser, date: string, dto: ReopenDailyAttendanceDto) {
     this.admin(user); const schoolId = this.schoolId(user); const localDate = new Date(date); const now = new Date();
