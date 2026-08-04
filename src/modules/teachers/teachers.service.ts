@@ -105,6 +105,9 @@ export class TeachersService {
     if (!teacher) {
       throw new NotFoundException("Teacher not found");
     }
+    if (!teacher.schoolId) {
+      throw new NotFoundException("Teacher does not belong to a school");
+    }
 
     // Enforce boundary checks
     if (
@@ -114,7 +117,26 @@ export class TeachersService {
       throw new ForbiddenException("Access denied to this teacher's details");
     }
 
-    return teacher;
+    const subjectAssignments = teacher.teacherProfile?.subjectAssignments ?? [];
+    const groups = await this.prisma.group.findMany({
+      where: {
+        schoolId: teacher.schoolId,
+        id: { in: subjectAssignments.map(({ groupId }) => groupId) },
+      },
+      include: { grade: true, schoolYear: true },
+    });
+    const groupsById = new Map(groups.map((group) => [group.id, group]));
+
+    return {
+      ...teacher,
+      teacherProfile: teacher.teacherProfile && {
+        ...teacher.teacherProfile,
+        subjectAssignments: subjectAssignments.map((assignment) => ({
+          ...assignment,
+          group: groupsById.get(assignment.groupId) ?? null,
+        })),
+      },
+    };
   }
 
   async create(dto: CreateTeacherDto, currentUser: RequestUser) {
