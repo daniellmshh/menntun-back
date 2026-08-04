@@ -740,10 +740,11 @@ model ClassAttendanceSession {
   id               String   @id @default(uuid())
   schoolId         String   @map("school_id")
   groupId          String   @map("group_id")
-  subjectId        String   @map("subject_id")
+  subjectId        String?  @map("subject_id")
   teacherProfileId String   @map("teacher_profile_id")
   localDate        DateTime @map("local_date") @db.Date
   blockLabel       String   @default("general") @map("block_label")
+  sessionKey       String   @map("session_key")
   startedAt        DateTime @default(now()) @map("started_at")
   closedAt         DateTime? @map("closed_at")
   createdAt        DateTime @default(now()) @map("created_at")
@@ -751,11 +752,11 @@ model ClassAttendanceSession {
 
   school         School         @relation(fields: [schoolId], references: [id])
   group          Group          @relation(fields: [groupId], references: [id])
-  subject        Subject        @relation(fields: [subjectId], references: [id])
+  subject        Subject?       @relation(fields: [subjectId], references: [id])
   teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id])
   records        ClassAttendanceRecord[]
 
-  @@unique([groupId, subjectId, teacherProfileId, localDate, blockLabel])
+  @@unique([groupId, teacherProfileId, localDate, blockLabel, sessionKey])
   @@index([schoolId, localDate])
   @@map("class_attendance_sessions")
 }

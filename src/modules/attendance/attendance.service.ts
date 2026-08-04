@@ -83,23 +83,137 @@ export class AttendanceService {
     return { event, duplicate: false, student: { id: credential.studentProfileId, firstName: credential.studentProfile.user.firstName, lastName: credential.studentProfile.user.lastName, avatarUrl: credential.studentProfile.user.avatarUrl }, state: next };
   }
 
+  async listClassContexts(user: RequestUser) {
+    const schoolId = this.schoolId(user);
+    const teacher = user.role === UserRole.TEACHER ? await this.teacher(user) : undefined;
+    if (!teacher) this.admin(user);
+
+    const [groupTeachers, subjectTeachers] = await Promise.all([
+      prisma.groupTeacher.findMany({
+        where: { group: { schoolId }, ...(teacher ? { teacherProfileId: teacher.id } : {}) },
+        select: { groupId: true },
+      }),
+      prisma.subjectTeacher.findMany({
+        where: { group: { schoolId }, ...(teacher ? { teacherProfileId: teacher.id } : {}) },
+        select: { groupId: true },
+      }),
+    ]);
+
+    const groupIds = teacher
+      ? [...new Set([...groupTeachers.map((assignment) => assignment.groupId), ...subjectTeachers.map((assignment) => assignment.groupId)])]
+      : undefined;
+    const groups = await prisma.group.findMany({
+      where: { schoolId, ...(groupIds ? { id: { in: groupIds } } : {}) },
+      include: { grade: { select: { name: true } } },
+      orderBy: [{ grade: { name: "asc" } }, { name: "asc" }],
+    });
+
+    const contexts = await Promise.all(groups.map(async (group) => {
+      try {
+        const context = await this.buildClassContext(user, group.id, false);
+        return { id: context.group.id, name: context.group.name, grade: context.group.grade, sessionMode: context.sessionMode, subjects: context.subjects };
+      } catch {
+        return null;
+      }
+    }));
+    return contexts.filter((context): context is NonNullable<typeof context> => context !== null);
+  }
+
+  async getClassContext(user: RequestUser, groupId: string) {
+    return this.buildClassContext(user, groupId, true);
+  }
+
   async createSession(user: RequestUser, dto: CreateClassSessionDto) {
     const schoolId = this.schoolId(user);
     const date = dto.localDate ? new Date(dto.localDate) : this.dateInZone(new Date(), (await this.settings(schoolId)).timezone);
-    const [group, subject] = await Promise.all([prisma.group.findFirst({ where: { id: dto.groupId, schoolId }, select: { id: true } }), prisma.subject.findFirst({ where: { id: dto.subjectId, schoolId }, select: { id: true } })]);
-    if (!group || !subject) throw new NotFoundException("El grupo o materia no pertenece a la escuela activa");
-    let teacherId: string | undefined;
-    if (user.role === UserRole.TEACHER) {
-      const teacher = await this.teacher(user);
-      const assignment = await prisma.subjectTeacher.findUnique({ where: { subjectId_teacherProfileId_groupId: { subjectId: dto.subjectId, teacherProfileId: teacher.id, groupId: dto.groupId } } });
-      if (!assignment) throw new ForbiddenException("No tienes asignada esta materia y grupo");
-      teacherId = teacher.id;
-    } else {
-      this.admin(user);
-      teacherId = (await prisma.subjectTeacher.findFirst({ where: { subjectId: dto.subjectId, groupId: dto.groupId, teacherProfile: { user: { schoolId } } } }))?.teacherProfileId;
+    const context = await this.buildClassContext(user, dto.groupId, false);
+    const blockLabel = dto.blockLabel ?? "general";
+
+    if (context.sessionMode === "SUBJECT" && !dto.subjectId) {
+      throw new BadRequestException("Selecciona la materia para iniciar este pase de lista.");
     }
-    if (!teacherId) throw new BadRequestException("Asigna un docente a la materia antes de crear la sesión");
-    return prisma.classAttendanceSession.upsert({ where: { groupId_subjectId_teacherProfileId_localDate_blockLabel: { groupId: dto.groupId, subjectId: dto.subjectId, teacherProfileId: teacherId, localDate: date, blockLabel: dto.blockLabel ?? "general" } }, create: { schoolId, groupId: dto.groupId, subjectId: dto.subjectId, teacherProfileId: teacherId, localDate: date, blockLabel: dto.blockLabel ?? "general" }, update: {} });
+    if (context.sessionMode === "GROUP" && dto.subjectId) {
+      throw new BadRequestException("Este grupo usa un pase de lista general y no requiere materia.");
+    }
+
+    let teacherProfileId: string;
+    let sessionKey: string;
+    if (dto.subjectId) {
+      const assignment = await prisma.subjectTeacher.findFirst({
+        where: {
+          groupId: dto.groupId,
+          subjectId: dto.subjectId,
+          teacherProfile: { user: { schoolId } },
+          ...(user.role === UserRole.TEACHER ? { teacherProfileId: (await this.teacher(user)).id } : {}),
+        },
+        select: { teacherProfileId: true },
+      });
+      if (!assignment) throw new ForbiddenException("No tienes asignada esta materia y grupo.");
+      teacherProfileId = assignment.teacherProfileId;
+      sessionKey = `subject:${dto.subjectId}`;
+    } else {
+      teacherProfileId = context.generalTeacherProfileId!;
+      sessionKey = "group";
+    }
+
+    return prisma.classAttendanceSession.upsert({
+      where: { groupId_teacherProfileId_localDate_blockLabel_sessionKey: { groupId: dto.groupId, teacherProfileId, localDate: date, blockLabel, sessionKey } },
+      create: { schoolId, groupId: dto.groupId, subjectId: dto.subjectId ?? null, teacherProfileId, localDate: date, blockLabel, sessionKey },
+      update: {},
+    });
+  }
+
+  private async buildClassContext(user: RequestUser, groupId: string, includeStudents: boolean) {
+    const schoolId = this.schoolId(user);
+    const teacher = user.role === UserRole.TEACHER ? await this.teacher(user) : undefined;
+    if (!teacher) this.admin(user);
+
+    const group = await prisma.group.findFirst({ where: { id: groupId, schoolId }, include: { grade: { select: { name: true } } } });
+    if (!group) throw new NotFoundException("El grupo no pertenece a la escuela activa.");
+
+    const [groupTeachers, subjectAssignments] = await Promise.all([
+      prisma.groupTeacher.findMany({ where: { groupId }, select: { teacherProfileId: true } }),
+      prisma.subjectTeacher.findMany({
+        where: { groupId, ...(teacher ? { teacherProfileId: teacher.id } : {}) },
+        include: { subject: { select: { id: true, name: true } } },
+        orderBy: { subject: { name: "asc" } },
+      }),
+    ]);
+
+    const isOnlyGroupTeacher = groupTeachers.length === 1 && (!teacher || groupTeachers[0].teacherProfileId === teacher.id);
+    const canUseGeneralSession = subjectAssignments.length === 0 && isOnlyGroupTeacher;
+    if (!canUseGeneralSession && subjectAssignments.length === 0) {
+      throw new ForbiddenException("No tienes una asignación válida para pasar lista en este grupo.");
+    }
+
+    const sessionMode = subjectAssignments.length > 0 ? "SUBJECT" as const : "GROUP" as const;
+    const result: {
+      group: { id: string; name: string; grade: { name: string } };
+      sessionMode: "GROUP" | "SUBJECT";
+      subjects: { id: string; name: string }[];
+      generalTeacherProfileId?: string;
+      students?: { studentProfileId: string; firstName: string; lastName: string; enrollmentNumber: string | null }[];
+    } = {
+      group: { id: group.id, name: group.name, grade: group.grade },
+      sessionMode,
+      subjects: subjectAssignments.map(({ subject }) => subject),
+      ...(canUseGeneralSession ? { generalTeacherProfileId: groupTeachers[0].teacherProfileId } : {}),
+    };
+
+    if (includeStudents) {
+      const enrollments = await prisma.enrollment.findMany({
+        where: { groupId, status: "ACTIVE" },
+        include: { studentProfile: { include: { user: { select: { firstName: true, lastName: true } } } } },
+        orderBy: [{ studentProfile: { user: { lastName: "asc" } } }, { studentProfile: { user: { firstName: "asc" } } }],
+      });
+      result.students = enrollments.map(({ studentProfile }) => ({
+        studentProfileId: studentProfile.id,
+        firstName: studentProfile.user.firstName,
+        lastName: studentProfile.user.lastName,
+        enrollmentNumber: studentProfile.enrollmentNumber,
+      }));
+    }
+    return result;
   }
   async markSession(user: RequestUser, sessionId: string, dto: UpsertClassAttendanceDto) { const schoolId = this.schoolId(user); const session = await prisma.classAttendanceSession.findFirst({ where: { id: sessionId, schoolId } }); if (!session) throw new NotFoundException("Sesión no encontrada"); if (!ADMIN.includes(user.role) && session.teacherProfileId !== (await this.teacher(user)).id) throw new ForbiddenException("No puedes modificar esta sesión"); const active = await prisma.enrollment.findMany({ where: { groupId: session.groupId, status: "ACTIVE", studentProfileId: { in: dto.records.map(x => x.studentProfileId) } }, select: { studentProfileId: true } }); if (active.length !== dto.records.length) throw new BadRequestException("Todos los alumnos deben pertenecer al grupo"); await prisma.$transaction(dto.records.map(record => prisma.classAttendanceRecord.upsert({ where: { sessionId_studentProfileId: { sessionId, studentProfileId: record.studentProfileId } }, create: { sessionId, studentProfileId: record.studentProfileId, status: record.status, notes: record.notes }, update: { status: record.status, notes: record.notes, correctedAt: new Date(), correctionReason: record.correctionReason } }))); const evidence = dto.records.filter(x => x.status === AttendanceStatus.PRESENT || x.status === AttendanceStatus.LATE || x.status === AttendanceStatus.EXCUSED); await Promise.all(evidence.map(x => prisma.dailyAttendanceSummary.upsert({ where: { schoolId_studentProfileId_localDate: { schoolId, studentProfileId: x.studentProfileId, localDate: session.localDate } }, create: { schoolId, groupId: session.groupId, studentProfileId: x.studentProfileId, localDate: session.localDate, status: x.status === AttendanceStatus.EXCUSED ? DailyAttendanceStatus.EXCUSED : x.status === AttendanceStatus.LATE ? DailyAttendanceStatus.LATE : DailyAttendanceStatus.PRESENT, hasClassEvidence: true }, update: { hasClassEvidence: true, status: x.status === AttendanceStatus.EXCUSED ? DailyAttendanceStatus.EXCUSED : DailyAttendanceStatus.PRESENT } }))); return this.getSession(user, sessionId); }
   async getSession(user: RequestUser, id: string) {

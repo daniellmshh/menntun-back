@@ -82,6 +82,16 @@ export class AttendanceController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ORG_ADMIN, UserRole.SCHOOL_ADMIN, UserRole.ATTENDANCE_OPERATOR, UserRole.TEACHER, UserRole.PARENT, UserRole.TUTOR, UserRole.STUDENT)
   async timeline(@CurrentUser() user: RequestUser, @Param("studentProfileId") studentProfileId: string) { return successResponse(await this.attendanceService.timeline(user, studentProfileId)); }
 
+  @Get("class-context")
+  @Roles(...ADMINS, UserRole.TEACHER)
+  @ApiOperation({ summary: "List groups available for class attendance and their required subject selection" })
+  async classContext(@CurrentUser() user: RequestUser) { return successResponse(await this.attendanceService.listClassContexts(user)); }
+
+  @Get("class-context/:groupId")
+  @Roles(...ADMINS, UserRole.TEACHER)
+  @ApiOperation({ summary: "Get the roster and attendance mode for one accessible group" })
+  async classGroupContext(@CurrentUser() user: RequestUser, @Param("groupId") groupId: string) { return successResponse(await this.attendanceService.getClassContext(user, groupId)); }
+
   @Post("class-sessions")
   @Roles(...ADMINS, UserRole.TEACHER)
   async createSession(@CurrentUser() user: RequestUser, @Body() dto: CreateClassSessionDto) { return successResponse(await this.attendanceService.createSession(user, dto)); }

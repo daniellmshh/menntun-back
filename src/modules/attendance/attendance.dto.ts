@@ -61,7 +61,7 @@ export class ResolveCredentialDto {
 
 export class CreateClassSessionDto {
   @IsString() @IsNotEmpty() groupId: string;
-  @IsString() @IsNotEmpty() subjectId: string;
+  @IsString() @IsOptional() subjectId?: string;
   @IsDateString() @IsOptional() localDate?: string;
   @IsString() @IsOptional() blockLabel?: string;
 }
