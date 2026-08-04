@@ -463,15 +463,22 @@ export class AcademicService {
 
   // ─── GROUPS METHODS ────────────────────────────────────────────────
 
-  async findAllGroups(schoolId: string, schoolYearId?: string, user?: RequestUser) {
+  async findAllGroups(schoolId: string, schoolYearId?: string, user?: RequestUser, assignedToMe = false) {
     const targetSchoolId = (user && user.role === UserRole.SUPER_ADMIN)
       ? (schoolId || user.schoolId)
       : (user?.schoolId || schoolId);
+    const teacherGroupIds = assignedToMe && user?.role === UserRole.TEACHER
+      ? (await prisma.subjectTeacher.findMany({
+          where: { teacherProfile: { userId: user.id } },
+          select: { groupId: true },
+        })).map(({ groupId }) => groupId)
+      : undefined;
 
     return prisma.group.findMany({
       where: {
         schoolId: targetSchoolId as string,
         ...(schoolYearId ? { schoolYearId } : {}),
+        ...(teacherGroupIds ? { id: { in: teacherGroupIds } } : {}),
       },
       orderBy: { name: "asc" },
       include: {

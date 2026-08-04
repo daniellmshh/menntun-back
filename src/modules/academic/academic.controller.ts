@@ -226,8 +226,9 @@ export class AcademicController {
     @CurrentUser() user: RequestUser,
     @Query("schoolId") schoolId?: string,
     @Query("schoolYearId") schoolYearId?: string,
+    @Query("assignedToMe") assignedToMe?: string,
   ) {
-    const data = await this.academicService.findAllGroups(schoolId || (user.activeSchoolId || user.schoolId) as string, schoolYearId, user);
+    const data = await this.academicService.findAllGroups(schoolId || (user.activeSchoolId || user.schoolId) as string, schoolYearId, user, assignedToMe === "true");
     return successResponse(data);
   }
 
